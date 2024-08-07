@@ -1,4 +1,5 @@
-SELECT * 
+SELECT *,
+    ROUND(ValorUnitarioTotalComDesconto, 2) AS valorFinal
 FROM (
     SELECT 
         %(Tipo_Unidade)s AS Tipo_Unidade,
@@ -55,7 +56,7 @@ FROM (
         itensPedido.ID_PAGO AS PedidoPago,
         itensPedido.NU_PEDCLI AS PedidoCliente,
         itensPedido.Origem,
-        itensPedido.DT_ENCER AS DataEncerramento  -- Adicionando a coluna DT_ENCER
+        itensPedido.DT_ENCER AS DataEncerramento
     FROM (
         SELECT 
             produtos.NU_PRO, produtos.QT_PRO, produtos.VLR_PRO,
@@ -89,7 +90,7 @@ FROM (
             ped.ID_PAGO,
             ped.NU_PEDCLI,
             origem.DS_ORIGEM AS Origem,
-            ped.DT_ENCER  -- Certifique-se de incluir esta coluna na subconsulta
+            ped.DT_ENCER
         FROM mgpve01011 produtos 
         INNER JOIN mgpve01010 ped ON (ped.NU_PVE = produtos.NU_PVE AND ped.ID_STATUS = 6 AND DATE(ped.DT_ENCER) BETWEEN '2024-01-01' AND '2024-07-31')
         INNER JOIN mgpro01010 pro ON (pro.NU_PRO = produtos.NU_PRO)

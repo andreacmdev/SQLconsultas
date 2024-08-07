@@ -1,18 +1,26 @@
 SELECT
+    %(Tipo_Unidade)s AS Tipo_Unidade,
+    %(Unidade)s AS Unidade,
     pedidos.Cliente,
     pedidos.DataPedido AS DataPedido,
     devolvidos.Produto,
     devolvidos.DataDevolucao,
-    devolvidos.CodPedido,
-    devolvidos.CodProduto,
+    CONVERT(devolvidos.CodPedido, CHAR) AS CodPedido,
+    CONVERT(devolvidos.CodProduto, CHAR) AS CodProduto,
     devolvidos.QtdDevolvida,
     CASE 
-        WHEN pedidos.tipo_pedido = '2' THEN CAST(((pedidos.ValorUnitario * devolvidos.MetragemDevolvida) - (pedidos.CustoUnitario * devolvidos.MetragemDevolvida)) AS DECIMAL(18, 2))
-        ELSE CAST(((pedidos.ValorUnitario * devolvidos.QtdDevolvida) - (pedidos.CustoUnitario * devolvidos.QtdDevolvida)) AS DECIMAL(18, 2))
-    END AS Valor,
+        WHEN pedidos.tipo_pedido = '2' THEN FORMAT((pedidos.ValorUnitario * devolvidos.MetragemDevolvida) - (pedidos.CustoUnitario * devolvidos.MetragemDevolvida), 2, 'de_DE')
+        ELSE FORMAT((pedidos.ValorUnitario * devolvidos.QtdDevolvida) - (pedidos.CustoUnitario * devolvidos.QtdDevolvida), 2, 'de_DE')
+    END AS ValorDevolvido,
     usuarios.NOM_USU AS UsuarioDevolucao,
     motivos.DS_MMV AS MotivoDevolucao,
-    CONVERT(od.DS_OBS_DEV USING utf8) AS Observacao -- Garante que o texto seja tratado corretamente
+    od.DS_OBS_DEV AS Observacao,
+    CASE 
+        WHEN pedidos.tipo_pedido = '1' THEN 'Serie' 
+        WHEN pedidos.tipo_pedido = '2' THEN 'Engenharia' 
+        WHEN pedidos.tipo_pedido = '3' THEN 'Serviço' 
+        ELSE 'Desconhecido'
+    END AS TipoPedido
 FROM (
     SELECT
         devolvidos.NU_PVE AS CodPedido,
