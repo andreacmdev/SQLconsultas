@@ -9,9 +9,18 @@ SELECT
     CONVERT(devolvidos.CodProduto, CHAR) AS CodProduto,
     devolvidos.QtdDevolvida,
     CASE 
-        WHEN pedidos.tipo_pedido = '2' THEN FORMAT((pedidos.ValorUnitario * devolvidos.MetragemDevolvida) - (pedidos.CustoUnitario * devolvidos.MetragemDevolvida), 2, 'de_DE')
+        WHEN pedidos.tipo_pedido = '2' THEN FORMAT((pedidos.ValorUnitario * devolvidos.MetragemDevolvida)- (pedidos.CustoUnitario * devolvidos.MetragemDevolvida), 2, 'de_DE')
         ELSE FORMAT((pedidos.ValorUnitario * devolvidos.QtdDevolvida) - (pedidos.CustoUnitario * devolvidos.QtdDevolvida), 2, 'de_DE')
-    END AS ValorDevolvido,
+    END AS ValorDevolvidoLucro,
+    CASE 
+        WHEN pedidos.tipo_pedido = '2' THEN FORMAT((pedidos.ValorUnitario * devolvidos.MetragemDevolvida), 2, 'de_DE')
+        ELSE FORMAT((pedidos.ValorUnitario * devolvidos.QtdDevolvida) , 2, 'de_DE')
+    END AS ValorDevolvidoVenda,
+    CASE 
+        WHEN pedidos.tipo_pedido = '2' THEN FORMAT((pedidos.CustoUnitario * devolvidos.MetragemDevolvida), 2, 'de_DE')
+        ELSE FORMAT((pedidos.CustoUnitario * devolvidos.QtdDevolvida), 2, 'de_DE')
+    END AS ValorDevolvidoCusto,
+    pedidos.VLR_FINAL as ValorFinalPedido, -- Adicionada a coluna VLR_FINAL aqui
     usuarios.NOM_USU AS UsuarioDevolucao,
     motivos.DS_MMV AS MotivoDevolucao,
     od.DS_OBS_DEV AS Observacao,
@@ -55,6 +64,7 @@ LEFT JOIN (
         SUM(pro.QT_PRO) AS qt_pro,
         (((pro.VLR_PRO * (100 - COALESCE(pro.alq_desc + pro.alq_acresc, 0)))) / 100) AS ValorUnitario,
         ped.ID_TP_PED AS tipo_pedido,
+        ped.VLR_FINAL, -- Selecionada a coluna VLR_FINAL aqui
         pro.NU_CUSTO AS CustoUnitario
     FROM mgpve01011 pro
     LEFT JOIN mgpve01010 ped ON pro.NU_PVE = ped.NU_PVE
@@ -64,7 +74,8 @@ LEFT JOIN (
         pro.nu_pro,
         pro.QT_ALTURA,
         pro.QT_LARGURA,
-        ped.DT_PVE
+        ped.DT_PVE,
+        ped.VLR_FINAL -- Adicionada a coluna VLR_FINAL ao GROUP BY
 ) pedidos ON devolvidos.CodPedido = pedidos.NU_PVE AND devolvidos.CodProduto = pedidos.nu_pro AND devolvidos.Altura = COALESCE(pedidos.QT_ALTURA, 0) AND devolvidos.Largura = COALESCE(pedidos.QT_LARGURA, 0)
 LEFT JOIN mgusu01010 usuarios ON devolvidos.NU_USU = usuarios.NU_USU
 LEFT JOIN mgmmv01010 motivos ON devolvidos.NU_MMV = motivos.NU_MMV
