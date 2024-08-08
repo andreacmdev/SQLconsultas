@@ -1,6 +1,6 @@
 (
 SELECT
-	%(Tipo_Unidade)s AS Tipo_Unidade
+	  %(Tipo_Unidade)s AS Tipo_Unidade
 	, %(Unidade)s AS Unidade
 	, titulos.nu_cta AS chave 
 	, DATE(titulos.DT_PAGTO) AS data_pagamento 
