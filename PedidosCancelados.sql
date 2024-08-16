@@ -92,7 +92,7 @@ FROM (
             origem.DS_ORIGEM AS Origem,
             ped.DT_ENCER
         FROM mgpve01011 produtos 
-        INNER JOIN mgpve01010 ped ON (ped.NU_PVE = produtos.NU_PVE AND ped.ID_STATUS = 6 AND DATE(ped.DT_ENCER) BETWEEN '2024-01-01' AND '2024-07-31')
+        INNER JOIN mgpve01010 ped ON (ped.NU_PVE = produtos.NU_PVE AND ped.ID_STATUS = 6 AND DATE(ped.DT_ENCER) BETWEEN '2024-08-13' AND '2024-08-13')
         INNER JOIN mgpro01010 pro ON (pro.NU_PRO = produtos.NU_PRO)
         LEFT JOIN mgpxo01010 origem ON origem.NU_PVE = ped.NU_PVE
     ) itensPedido

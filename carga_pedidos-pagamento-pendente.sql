@@ -19,9 +19,11 @@ WITH pedidos_consolidados AS (
         round(SUM(CAST(REPLACE(p.valor_unitario_total_com_desconto, ',', '.') AS NUMERIC))) AS valor_unitario_total_com_desconto
     FROM 
         pedidos p
+    LEFT JOIN 
+        status_pagamento_pedidos spp ON p.cod_pedido = spp.cod_pedido AND p.unidade = spp.unidade
     WHERE 
-        p.data_pedido::date BETWEEN '2024-01-01' AND '2024-06-30'
-        and p.unidade = 'CABO VIDROS'
+        p.tipo_unidade != 'Tempera'
+        AND spp.totalpendente != 0
     GROUP BY 
         p.tipo_unidade,
         p.unidade,
@@ -64,4 +66,3 @@ LEFT JOIN
     status_pagamento_pedidos spp ON pc.cod_pedido = spp.cod_pedido AND pc.unidade = spp.unidade
 ORDER BY 
     pc.unidade;
-
