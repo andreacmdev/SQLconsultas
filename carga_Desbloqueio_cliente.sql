@@ -37,7 +37,7 @@ LEFT JOIN
     status_pagamento_pedidos spp ON pc.cod_pedido = spp.cod_pedido 
     AND pc.unidade = spp.unidade
 WHERE 
-    DATE(dc.data_alteracao::timestamp) BETWEEN '2024-08-15' AND '2024-08-15'
+    DATE(dc.data_alteracao::timestamp) BETWEEN CURRENT_DATE - INTERVAL '1 day' AND CURRENT_DATE
     AND dc.tipo_unidade != 'Tempera'
 GROUP BY
     dc.tipo_unidade,
