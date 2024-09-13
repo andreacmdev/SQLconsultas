@@ -1,44 +1,53 @@
+-- pedidos emitidos para clientes em aberto + valorpendente
 WITH RecentOrders AS (
     SELECT 
+        cod_pedido,
         cod_cliente, 
         nome_cliente, 
         unidade, 
-        MAX(data_hora_pedido) AS data_hora_pedido  -- Pega o timestamp mais recente para o cliente
+        MAX(data_hora_pedido) AS data_hora_pedido
     FROM pedidos
-    WHERE data_hora_pedido >= NOW() - INTERVAL '30 minutes'  -- Pedidos dos últimos 30 minutos
-    GROUP BY cod_cliente, nome_cliente, unidade
-),
-Pendencias AS (
-    SELECT 
-        p.cod_cliente, 
-        p.unidade,
-        COUNT(*) AS qtd_pendencias  -- Contagem de pedidos com pendência
-    FROM pedidos p
-    WHERE p.status_pedido = 'Aberto' 
-      AND p.data_hora_pedido < NOW() - INTERVAL '30 days'  -- Pedidos abertos há mais de 30 dias
-    GROUP BY p.cod_cliente, p.unidade
+    WHERE data_hora_pedido >= NOW() - INTERVAL '30 minutes'
+    GROUP BY cod_pedido, cod_cliente, nome_cliente, unidade
 ),
 PagamentosPendentes AS (
     SELECT 
-        p.cod_cliente, 
-        p.unidade
-    FROM pedidos p
-    WHERE p.status_pedido = 'Aberto'
-      AND p.pedido_pago != 'S'  -- Verifica se o pedido não está pago
-      AND p.data_hora_pedido < NOW() - INTERVAL '30 days'  -- Pedidos abertos há mais de 30 dias
-    GROUP BY p.cod_cliente, p.unidade
+        spp.cod_pedido,
+        spp.unidade,
+        SUM(spp.totalpendente) AS valor_pendente
+    FROM status_pagamento_pedidos spp
+    WHERE spp.totalpendente != 0
+      AND EXISTS (
+        SELECT 1
+        FROM pedidos p
+        WHERE p.cod_pedido = spp.cod_pedido
+          AND p.data_hora_pedido < NOW() - INTERVAL '30 days'
+      )
+    GROUP BY spp.cod_pedido, spp.unidade
+),
+FilteredPendencias AS (
+    SELECT 
+        ro.cod_cliente, 
+        ro.nome_cliente, 
+        ro.unidade, 
+        ro.data_hora_pedido,
+        CASE 
+            WHEN pp.cod_pedido IS NOT NULL THEN 'TEM PENDÊNCIA E NÃO ESTÁ PAGO'
+            ELSE 'NÃO TEM PENDÊNCIA'
+        END AS pendencia_status,
+        COALESCE(SUM(pp.valor_pendente), 0) AS valor_pendente
+    FROM RecentOrders ro
+    LEFT JOIN PagamentosPendentes pp ON ro.cod_pedido = pp.cod_pedido AND ro.unidade = pp.unidade
+    GROUP BY ro.cod_cliente, ro.nome_cliente, ro.unidade, ro.data_hora_pedido, pendencia_status
 )
-SELECT 
-    ro.cod_cliente, 
-    ro.nome_cliente, 
-    ro.unidade, 
-    ro.data_hora_pedido,
-    CASE 
-        WHEN pp.cod_cliente IS NOT NULL THEN 'TEM PENDÊNCIA E NÃO ESTÁ PAGO'
-        WHEN pe.cod_cliente IS NOT NULL THEN 'TEM PENDÊNCIA, MAS ESTÁ PAGO'
-        ELSE 'NÃO TEM PENDÊNCIA'
-    END AS pendencia_status
-FROM RecentOrders ro
-LEFT JOIN Pendencias pe ON ro.cod_cliente = pe.cod_cliente AND ro.unidade = pe.unidade
-LEFT JOIN PagamentosPendentes pp ON ro.cod_cliente = pp.cod_cliente AND ro.unidade = pp.unidade
-ORDER BY ro.data_hora_pedido DESC;
+-- garantir apenas uma linha por cliente
+SELECT
+    cod_cliente,
+    nome_cliente,
+    unidade,
+    MAX(data_hora_pedido) AS data_hora_pedido,
+    pendencia_status,
+    SUM(valor_pendente) AS valor_pendente
+FROM FilteredPendencias
+GROUP BY cod_cliente, nome_cliente, unidade, pendencia_status
+ORDER BY unidade DESC;
