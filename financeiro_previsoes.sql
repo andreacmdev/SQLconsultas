@@ -1,7 +1,7 @@
 SELECT    
     %(Tipo_Unidade)s AS Tipo_Unidade,
-	%(Unidade)s AS Unidade,
-	titulos.nu_cta AS Titulo,   
+	%(Unidade)s AS Unidade,   
+    titulos.nu_cta AS Titulo,   
     'Despesa' AS Tipo,   
     titulos.DT_EMISSAO AS DataEmissao,   
     titulos.DT_VENCTO AS DataVencimento,   
@@ -24,7 +24,6 @@ SELECT
     titulos.NU_DOCTO AS Documento,   
     titulos.DS_OBS AS Observacao,   
     usu.NOM_USU AS Usuario,
-     -- Adicionando forma de pagamento com uma lógica aprimorada
     CASE 
         WHEN formas.TP_PAGTO = 1 AND formas.NU_CON IS NULL THEN 'Dinheiro'     
         WHEN formas.TP_PAGTO = 1 AND formas.NU_CON IS NOT NULL THEN 'Conta Interna'    
@@ -39,19 +38,18 @@ SELECT
         ELSE 'Nao Determinado' 
     END AS forma_pagamento   
 FROM mgcta01014 titulos   
+LEFT JOIN mgtxc01010 titConta ON titulos.NU_CTA = titConta.NU_CTA
+LEFT JOIN mgccu01010 centrocusto ON titConta.NU_CCU = centrocusto.NU_CCU
+LEFT JOIN mgcpc01010 planoconta ON titConta.NU_CPC = planoconta.NU_CPC
 LEFT JOIN mgfor01010 fornecores ON titulos.NU_FOR = fornecores.NU_FOR   
-LEFT JOIN mgccu01010 centrocusto ON centrocusto.NU_CCU = titulos.NU_CCU    
-LEFT JOIN mgcol01010 colaborador ON colaborador.NU_COL = titulos.NU_COL    
-LEFT JOIN mgcpc01010 planoconta ON planoconta.NU_CPC = titulos.NU_CPC    
+LEFT JOIN mgcol01010 colaborador ON colaborador.NU_COL = titulos.NU_COL      
 LEFT JOIN mgtpd01010 classificacao ON classificacao.NU_TPD = titulos.NU_TPD    
 LEFT JOIN mgusu01010 usu ON usu.NU_USU = titulos.NU_USU    
--- Incluindo a tabela mgcta01017 para obter as informações de pagamento corretas
 LEFT JOIN mgcta01017 pagamentos ON titulos.NU_CLT = pagamentos.NU_CLT
--- Incluindo a tabela de formas de pagamento
 LEFT JOIN mgcta01018 formas ON pagamentos.NU_CLT = formas.NU_CLT  
 WHERE
     titulos.ID_STAT_LANCTO IN (5, 1, 6)  
     AND titulos.COD_LANCTO = 2
     AND titulos.DT_VENCTO BETWEEN 
-        DATE_ADD(CURDATE(), INTERVAL (5 - WEEKDAY(CURDATE())) DAY)  -- Sábado da mesma semana
-        AND DATE_ADD(CURDATE(), INTERVAL (11 - WEEKDAY(CURDATE())) DAY); -- Sexta da semana seguinte
+        DATE_ADD(CURDATE(), INTERVAL (5 - WEEKDAY(CURDATE())) DAY)
+        AND DATE_ADD(CURDATE(), INTERVAL (11 - WEEKDAY(CURDATE())) DAY);
