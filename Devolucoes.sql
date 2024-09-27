@@ -1,6 +1,7 @@
+-- devolvido com custo e lucro perdido
 SELECT
     %(Tipo_Unidade)s AS Tipo_Unidade,
-    %(Unidade)s AS Unidade,
+    %(Unidade)s AS Unidade,   
     pedidos.Cliente,
     pedidos.DataPedido AS DataPedido,
     devolvidos.Produto,
@@ -9,12 +10,12 @@ SELECT
     CONVERT(devolvidos.CodProduto, CHAR) AS CodProduto,
     devolvidos.QtdDevolvida,
     CASE 
-        WHEN pedidos.tipo_pedido = '2' THEN FORMAT((pedidos.ValorUnitario * devolvidos.MetragemDevolvida) - (pedidos.CustoUnitario * devolvidos.MetragemDevolvida), 2, 'de_DE')
+        WHEN pedidos.tipo_pedido = '2' THEN FORMAT((pedidos.ValorUnitario * devolvidos.MetragemDevolvida)- (pedidos.CustoUnitario * devolvidos.MetragemDevolvida), 2, 'de_DE')
         ELSE FORMAT((pedidos.ValorUnitario * devolvidos.QtdDevolvida) - (pedidos.CustoUnitario * devolvidos.QtdDevolvida), 2, 'de_DE')
     END AS ValorDevolvidoLucro,
     CASE 
         WHEN pedidos.tipo_pedido = '2' THEN FORMAT((pedidos.ValorUnitario * devolvidos.MetragemDevolvida), 2, 'de_DE')
-        ELSE FORMAT((pedidos.ValorUnitario * devolvidos.QtdDevolvida), 2, 'de_DE')
+        ELSE FORMAT((pedidos.ValorUnitario * devolvidos.QtdDevolvida) , 2, 'de_DE')
     END AS ValorDevolvidoVenda,
     CASE 
         WHEN pedidos.tipo_pedido = '2' THEN FORMAT((pedidos.CustoUnitario * devolvidos.MetragemDevolvida), 2, 'de_DE')
@@ -29,10 +30,7 @@ SELECT
         WHEN pedidos.tipo_pedido = '2' THEN 'Engenharia' 
         WHEN pedidos.tipo_pedido = '3' THEN 'Serviço' 
         ELSE 'Desconhecido'
-    END AS TipoPedido,
-    catProdutos.DS_CAT AS CategoriaProduto,
-    classeProdutos.DS_CLP AS ClasseProduto,
-    subclasseProdutos.DS_SCP AS SubClasseProduto
+    END AS TipoPedido
 FROM (
     SELECT
         devolvidos.NU_PVE AS CodPedido,
@@ -48,9 +46,6 @@ FROM (
         devolvidos.NU_OBS_DEV
     FROM mgpve01014 devolvidos
     LEFT JOIN mgpro01010 pro ON pro.NU_PRO = devolvidos.NU_PRO
-    LEFT JOIN mgcat01010 catProdutos ON pro.NU_CAT = catProdutos.NU_CAT
-    LEFT JOIN mgclp01010 classeProdutos ON pro.NU_CLP = classeProdutos.NU_CLP
-    LEFT JOIN mgscp01010 subclasseProdutos ON pro.NU_SCP = subclasseProdutos.NU_SCP
     GROUP BY
         devolvidos.NU_PVE,
         devolvidos.NU_PRO,
@@ -86,7 +81,4 @@ LEFT JOIN (
 LEFT JOIN mgusu01010 usuarios ON devolvidos.NU_USU = usuarios.NU_USU
 LEFT JOIN mgmmv01010 motivos ON devolvidos.NU_MMV = motivos.NU_MMV
 LEFT JOIN obs_devolucao od ON devolvidos.NU_OBS_DEV = od.NU_OBS_DEV
-LEFT JOIN mgcat01010 catProdutos ON (catProdutos.NU_CAT = catProdutos.NU_CAT)
-LEFT JOIN mgclp01010 classeProdutos ON (classeProdutos.NU_CLP = classeProdutos.NU_CLP)
-LEFT JOIN mgscp01010 subclasseProdutos ON (subclasseProdutos.NU_SCP = subclasseProdutos.NU_SCP)
-WHERE devolvidos.DataDevolucao BETWEEN '2024-08-17' AND '2024-08-20';
+WHERE devolvidos.DataDevolucao BETWEEN CURDATE() - INTERVAL 1 DAY AND CURDATE();

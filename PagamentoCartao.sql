@@ -21,5 +21,5 @@ select
 	left join mgdsf01010 dsf on dsf.NU_DSF = card.NU_DSF
 	left join mgcon01010 conta on conta.NU_CON = dsf.NU_CON 
 	left join mgban01010 banco on banco.NU_BAN = dsf.NU_BAN 
-	where date(dsf.DT_DSF) >=  DATE_FORMAT(NOW(), '%Y-%m-01') 
+	where date(dsf.DT_DSF) BETWEEN '2023-09-01' AND CURDATE()
 	order by dsf.DT_DSF desc 
