@@ -18,7 +18,7 @@ FROM
 where
 	--p.unidade = ''
 	DATE(p.data_pedido ::timestamp) between '2024-01-01' AND '2024-06-30'
-	and p.status_pedido = 'Finalizado Finalizado Finalizado'
+	and p.status_pedido = 'Finalizado'
 	and p.unidade = 'CABO VIDROS'
 	and (p.pedido_pago != 'S' or p.pedido_pago is NULL)
 group by 
