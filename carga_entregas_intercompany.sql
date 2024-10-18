@@ -21,6 +21,8 @@ select
     eg.nome_produto,
     eg.nome_cliente ,
     eg.cod_cliente,
+    eg.valor_entregue as valor,
+    eg.acrescimo ,
     sum(eg.qtd_entregue) as qtde_entregue,
     eg.metragem_entregue ,
     SUM(eg.valor_entregue) as valor_entregue_pedido,
@@ -50,4 +52,6 @@ group by
     eg.cod_cliente,
     eg.qtd_entregue,
     eg.metragem_entregue ,
-    eg.valor_entregue 
+    eg.valor_entregue ,
+    eg.acrescimo ,
+    eg.carga

@@ -42,6 +42,7 @@ LEFT JOIN mapeamento_clientes mc
     ON pp.cod_cliente = mc.codcliente
     AND pp.unidade_pendente = mc.unidade
 WHERE pp.status_pagamento = 'Pendente'
+    and pp.unidade_pendente not in ('CAUCAIA', 'CODO')
   AND CASE
         WHEN pr.nome_cliente IS NOT NULL THEN 'Sim'
         ELSE 'Não'
