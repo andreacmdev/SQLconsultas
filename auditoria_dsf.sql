@@ -40,4 +40,5 @@ left join
 	mgcon01010 conta on dsf.NU_CON = conta.NU_CON 
 WHERE
     date(dsf.DT_DSF) BETWEEN CONCAT(YEAR(CURDATE()), '-01-01') AND CURDATE() - INTERVAL 1 DAY
-     AND dsf.ID_STATUS IN (1, 3);
+     AND dsf.ID_STATUS IN (1, 3)
+     and dsf.TP_ESPECIE not in ('2');
