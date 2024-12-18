@@ -1,5 +1,37 @@
--- pendencia bds com vitoria
-WITH pendencias AS (
+-- Saldos e mercadoria BDS
+WITH pedidos_unicos AS (
+    SELECT 
+        tipo_unidade,
+        unidade,
+        cod_cliente,
+        nome_cliente,
+        cod_pedido,
+        tipo_pedido
+    FROM 
+        pedidos
+    WHERE 
+        unidade = 'VITORIA DE SANTO ANTAO'
+        AND nome_cliente IN (
+            'PONTO DO VIDRO',
+            'GRAVATA DISTRIBUIDORA DE VIDROS',
+            'ARTHUR F SILVA DE OLIVEIRA VID',
+            'IGARASSU DISTRIBUIDORA DE VIDROS',
+            'PALMARES DISTRIBUIDORA DE VIDROS',
+            'ARTUR F SILVA DE OLIVEIRA VIDROS',
+            'SANTA CRUZ DISTRIBUIDORA DE VI',
+            'GOIANA VIDROS',
+            'PATOS VIDROS DISTRIBUIDORA',
+            'CABO DIST. DE VIDROS'
+        )
+    GROUP BY 
+        tipo_unidade, 
+        unidade, 
+        cod_cliente, 
+        nome_cliente, 
+        cod_pedido, 
+        tipo_pedido
+),
+pendencias AS (
     SELECT 
         p.tipo_unidade,
         p.unidade,
@@ -13,24 +45,12 @@ WITH pendencias AS (
         SUM(CASE WHEN p.tipo_pedido = 'Serie' THEN spp.totalpendente ELSE 0 END) AS pendencia_box,
         SUM(spp.totalpendente) AS pendencia_total
     FROM 
-        pedidos p
+        pedidos_unicos p
     LEFT JOIN 
-        status_pagamento_pedidos spp ON p.cod_pedido = spp.cod_pedido AND p.unidade = spp.unidade
+        status_pagamento_pedidos spp 
+        ON p.cod_pedido = spp.cod_pedido AND p.unidade = spp.unidade
     WHERE 
-        p.unidade = 'VITORIA DE SANTO ANTAO'
-        AND p.nome_cliente IN (
-            'PONTO DO VIDRO',
-            'GRAVATA DISTRIBUIDORA DE VIDROS',
-            'ARTHUR F SILVA DE OLIVEIRA VID',
-            'IGARASSU DISTRIBUIDORA DE VIDROS',
-            'PALMARES DISTRIBUIDORA DE VIDROS',
-            'ARTUR F SILVA DE OLIVEIRA VIDROS',
-            'SANTA CRUZ DISTRIBUIDORA DE VI',
-            'GOIANA VIDROS',
-            'PATOS VIDROS DISTRIBUIDORA',
-            'CABO DIST. DE VIDROS'
-        )
-        AND spp.totalpendente != 0
+        spp.totalpendente != 0
     GROUP BY 
         p.tipo_unidade,
         p.unidade,
@@ -87,4 +107,5 @@ GROUP BY
     p.pendencia_temperado,
     p.pendencia_total
 ORDER BY 
-    p.unidade, p.nome_cliente;
+    p.unidade, 
+    p.nome_cliente;
