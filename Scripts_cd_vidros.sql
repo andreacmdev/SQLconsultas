@@ -148,7 +148,3 @@ group by mpc.unidade, mpc.fornecedor
 
 select *
 from mapa_cdvidros_contas
-
-
-
-
