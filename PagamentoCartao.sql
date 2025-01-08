@@ -41,7 +41,7 @@ LEFT JOIN mgcli01010 cliente ON clt.NU_CLI = cliente.NU_CLI
 LEFT JOIN mgcon01010 conta ON conta.NU_CON = dsf.NU_CON
 LEFT JOIN mgban01010 banco ON banco.NU_BAN = dsf.NU_BAN
 WHERE
-    QtdParcelas >= 6
-    AND DATE(dsf.DT_DSF) BETWEEN '2024-12-01' and '2024-12-10'
+    QtdParcelas > 6
+    AND DATE(dsf.DT_DSF) BETWEEN '2024-12-11' and '2024-12-31'
 ORDER BY
     dsf.DT_DSF DESC;
