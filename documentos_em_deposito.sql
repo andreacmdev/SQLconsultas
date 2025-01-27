@@ -2,6 +2,8 @@
 SELECT * FROM (
 -- Dados de Boletos
 (select
+    %(Tipo_Unidade)s AS Tipo_Unidade,
+    %(Unidade)s AS Unidade,   
     boletos.DS_BOLETO as nu_documento, 
     titulos.NU_CLI as cod_cliente,
     clientes.DS_CLI as nome_cliente, 
@@ -32,6 +34,8 @@ where boletos.ID_STATUS IN (1)
   and clientes.DS_CLI is not null) 
 UNION ALL
 (select 
+    %(Tipo_Unidade)s AS Tipo_Unidade,
+    %(Unidade)s AS Unidade,
     boletos.DS_BOLETO as nu_documento, 
     titulos.NU_CLI as cod_cliente,
     clientes.DS_CLI as nome_cliente, 
@@ -64,6 +68,8 @@ where boletos.ID_STATUS IN (4)
 UNION ALL
 -- Dados de Cheques
 (select 
+    %(Tipo_Unidade)s AS Tipo_Unidade,
+    %(Unidade)s AS Unidade,
     cheques.nu_cheque as nu_documento, 
     titulos.NU_CLI as cod_cliente,
     clientes.DS_CLI as nome_cliente, 
@@ -94,6 +100,8 @@ where cheques.ID_STATUS IN (1)
   and clientes.DS_CLI is not null) 
 UNION ALL
 (select 
+    %(Tipo_Unidade)s AS Tipo_Unidade,
+    %(Unidade)s AS Unidade,
     cheques.nu_cheque as nu_documento, 
     titulos.NU_CLI as cod_cliente,
     clientes.DS_CLI as nome_cliente, 

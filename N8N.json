@@ -1,0 +1,20 @@
+--json N8N
+
+-JSON CreateCard (pipefy Rotina Controladoria - Devolução de Saldo)
+
+{
+  "query": "mutation { createCard(input: {pipe_id: 305619354, phase_id: 333525857, fields_attributes: [{field_id: \"classificacao\", field_value: \"{{ $json.classificacao }}\"}, {field_id: \"unidade\", field_value: \"{{ $json.unidade }}\"}, {field_id: \"descricao\", field_value: \"{{ $json.descricao }}\"}, {field_id: \"chave\", field_value: \"{{ $json.chave }}\"}, {field_id: \"valor\", field_value: \"{{ $json.valor }}\"}, {field_id: \"data_pagamento\", field_value: \"{{ $json.data_pagamento }}\"}]}) { card { id } } }"
+}
+
+
+--JSON pegar IDs do formulário
+
+{
+  "query": "query { pipe(id: 305619354) { id name start_form_fields { label id internal_id } } }"
+}
+
+-JSON CreateCard (pipefy Rotina Controladoria - PEDIDO EMITIDO PARA CLIENTE PENDENTE)
+
+{
+  "query": "mutation { createCard(input: {pipe_id: 305619354, phase_id: 333525857, title: \"PEDIDO EMITIDO PARA CLIENTE PENDENTE\", fields_attributes: [{field_id: \"cod_cliente\", field_value: \"{{ $json.cod_cliente }}\"}, {field_id: \"unidade\", field_value: \"{{ $('formata texto').item.json.unidade_novo_pedido }}\"}, {field_id: \"nome_cliente\", field_value: \"{{ $json.nome_cliente }}\"}]}) { card { id } } }"
+}

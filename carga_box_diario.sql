@@ -25,7 +25,7 @@ SELECT
 FROM  
     produtos_completos pc 
 WHERE 
-    pc.categoria LIKE 'BOX%' 
+    pc.categoria LIKE '%BOX%' 
     AND REPLACE(pc.estoque_atual, ',', '.')::numeric = 0
     and pc.unidade = 'Alumiaco Recife'
 GROUP BY
