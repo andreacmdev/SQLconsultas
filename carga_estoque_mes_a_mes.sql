@@ -1,10 +1,10 @@
--- agreste vidros estoque anual
+-- Agreste Vidros Estoque Anual e Contínuo
 WITH cte_datas_base AS (
-    -- Gera uma lista com o primeiro dia de cada mês de 2024
+    -- Gera uma lista de datas do primeiro dia de cada mês, começando de janeiro de 2024 até o mês atual
     SELECT 
         GENERATE_SERIES(
-            DATE '2024-01-01', 
-            DATE '2024-12-01', 
+            DATE '2024-01-01', -- Data inicial fixa ou personalizável
+            DATE_TRUNC('month', CURRENT_DATE), -- Gera até o mês atual
             INTERVAL '1 month'
         )::DATE AS data_base
 ),
@@ -19,12 +19,12 @@ cte_ultima_movimentacao_mes AS (
         cte_datas_base d
     LEFT JOIN estoque_produtos ep
         ON ep.data_movimentacao::timestamp <= (d.data_base + INTERVAL '1 month' - INTERVAL '1 day') -- Conversão explícita
-        AND ep.unidade = 'Agreste Vidros'
+        AND ep.unidade = 'CD VIDROS'
     GROUP BY
         ep.unidade, ep.cod_produto, d.data_base
 ),
 cte_saldos_completos AS (
-    -- Pega o saldo correspondente à última movimentação do mês
+    -- Pega o saldo correspondente à última movimentação do mês e adiciona custo_unitario
     SELECT
         u.unidade,
         u.cod_produto,
@@ -32,6 +32,7 @@ cte_saldos_completos AS (
         ep.nome_produto,
         ep.categoria,
         ep.saldo_dia AS ultimo_saldo_dia,
+        ep.custo_unitario, -- Inclui o custo unitário
         u.ultima_data
     FROM
         cte_ultima_movimentacao_mes u
@@ -41,7 +42,7 @@ cte_saldos_completos AS (
         AND ep.data_movimentacao::timestamp = u.ultima_data -- Conversão explícita
 ),
 cte_preenchimento_ausencias AS (
-    -- Preenche os meses sem movimentação com o saldo do mês anterior
+    -- Preenche os meses sem movimentação com o saldo do mês anterior, mas evita preenchimento além da data atual
     SELECT
         unidade,
         cod_produto,
@@ -49,6 +50,7 @@ cte_preenchimento_ausencias AS (
         nome_produto,
         categoria,
         ultimo_saldo_dia,
+        custo_unitario, -- Mantém o custo unitário
         ultima_data,
         COALESCE(
             ultimo_saldo_dia, 
@@ -64,12 +66,17 @@ SELECT
     nome_produto,
     categoria,
     data_base AS data_referencia,
-    saldo_ajustado AS saldo_dia
+    saldo_ajustado AS saldo_dia,
+    ROUND(
+        CAST(REPLACE(saldo_ajustado, ',', '.') AS NUMERIC) * 
+        CAST(REPLACE(custo_unitario, ',', '.') AS NUMERIC),
+        2
+    ) AS custo_total
 FROM
     cte_preenchimento_ausencias
 WHERE
-    unidade = 'Agreste Vidros'
+    unidade = 'CD VIDROS'
+    AND data_base <= CURRENT_DATE -- Limita os resultados até a data atual
 ORDER BY
     cod_produto,
     data_referencia;
-    
