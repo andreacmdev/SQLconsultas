@@ -1,6 +1,4 @@
--- Agreste Vidros Estoque Anual e Contínuo
 WITH cte_datas_base AS (
-    -- Gera uma lista de datas do primeiro dia de cada mês, começando de janeiro de 2024 até o mês atual
     SELECT 
         GENERATE_SERIES(
             DATE '2024-01-01', -- Data inicial fixa ou personalizável
@@ -9,22 +7,20 @@ WITH cte_datas_base AS (
         )::DATE AS data_base
 ),
 cte_ultima_movimentacao_mes AS (
-    -- Encontra a última movimentação de cada produto em cada mês
     SELECT
         ep.unidade,
         ep.cod_produto,
         d.data_base,
-        MAX(ep.data_movimentacao::timestamp) AS ultima_data -- Conversão explícita
+        MAX(ep.data_movimentacao::timestamp) AS ultima_data 
     FROM
         cte_datas_base d
     LEFT JOIN estoque_produtos ep
-        ON ep.data_movimentacao::timestamp <= (d.data_base + INTERVAL '1 month' - INTERVAL '1 day') -- Conversão explícita
+        ON ep.data_movimentacao::timestamp <= (d.data_base + INTERVAL '1 month' - INTERVAL '1 day') 
         AND ep.unidade = 'CD VIDROS'
     GROUP BY
         ep.unidade, ep.cod_produto, d.data_base
 ),
 cte_saldos_completos AS (
-    -- Pega o saldo correspondente à última movimentação do mês e adiciona custo_unitario
     SELECT
         u.unidade,
         u.cod_produto,
@@ -42,7 +38,6 @@ cte_saldos_completos AS (
         AND ep.data_movimentacao::timestamp = u.ultima_data -- Conversão explícita
 ),
 cte_preenchimento_ausencias AS (
-    -- Preenche os meses sem movimentação com o saldo do mês anterior, mas evita preenchimento além da data atual
     SELECT
         unidade,
         cod_produto,
@@ -59,7 +54,6 @@ cte_preenchimento_ausencias AS (
     FROM
         cte_saldos_completos
 )
--- Resultado final
 SELECT
     unidade,
     cod_produto,
@@ -79,4 +73,4 @@ WHERE
     AND data_base <= CURRENT_DATE -- Limita os resultados até a data atual
 ORDER BY
     cod_produto,
-    data_referencia;
+    data_referencia
