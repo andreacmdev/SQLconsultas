@@ -25,7 +25,7 @@ SELECT DISTINCT
         CAST(REPLACE(ep.estoque_atual, ',', '.') AS NUMERIC), 2
     ) AS valor_produto
 FROM estoque_produtos ep 
-WHERE unidade = 'CD VIDROS'
+WHERE unidade = 'FORTALEZA'
     AND REPLACE(ep.estoque_atual, ',', '.')::NUMERIC != 0.0;
 
 	

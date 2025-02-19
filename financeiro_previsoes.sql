@@ -50,4 +50,4 @@ LEFT JOIN mgcta01018 formas ON pagamentos.NU_CLT = formas.NU_CLT
 WHERE
     titulos.ID_STAT_LANCTO IN (5, 1, 6)  
     AND titulos.COD_LANCTO = 2
-    AND titulos.DT_VENCTO BETWEEN '2025-02-01' and '2025-02-07'
+    AND titulos.DT_VENCTO BETWEEN '2025-02-15' and '2025-02-21'

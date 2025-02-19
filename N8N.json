@@ -3,7 +3,7 @@
 -JSON CreateCard (pipefy Rotina Controladoria - Devolução de Saldo)
 
 {
-  "query": "mutation { createCard(input: {pipe_id: 305619354, phase_id: 333525857, fields_attributes: [{field_id: \"classificacao\", field_value: \"{{ $json.classificacao }}\"}, {field_id: \"unidade\", field_value: \"{{ $json.unidade }}\"}, {field_id: \"descricao\", field_value: \"{{ $json.descricao }}\"}, {field_id: \"chave\", field_value: \"{{ $json.chave }}\"}, {field_id: \"valor\", field_value: \"{{ $json.valor }}\"}, {field_id: \"data_pagamento\", field_value: \"{{ $json.data_pagamento }}\"}]}) { card { id } } }"
+  "query": "mutation { createCard(input: {pipe_id: 305619354, phase_id: 333525857, fields_attributes: [{field_id: \"classificacao\", field_value: \"{{ $json.classificacao }}\"}, {field_id: \"unidade\", field_value: \"{{ $json.unidade }}\"}, {field_id: \"descricao\", field_value: \"{{ $json.descricao }}\"}, {field_id: \"chave\", field_value: \"{{ $json.chave }}\"}, {field_id: \"valor\", field_value: \"{{ $json.valor }}\"}, {field_id: \"data_pagamento\", field_value: \"{{ $json.data_pagavalormento }}\"}]}) { card { id } } }"
 }
 
 
@@ -17,4 +17,72 @@
 
 {
   "query": "mutation { createCard(input: {pipe_id: 305619354, phase_id: 333525857, title: \"PEDIDO EMITIDO PARA CLIENTE PENDENTE\", fields_attributes: [{field_id: \"cod_cliente\", field_value: \"{{ $json.cod_cliente }}\"}, {field_id: \"unidade\", field_value: \"{{ $('formata texto').item.json.unidade_novo_pedido }}\"}, {field_id: \"nome_cliente\", field_value: \"{{ $json.nome_cliente }}\"}]}) { card { id } } }"
+}
+
+
+
+
+-- id das etiquetas do pipefy 'ROTINA Controladoria'
+
+
+[
+  {
+    "data": {
+      "pipe": {
+        "labels": [
+          {
+          "id": 
+          "314306204",
+          "name": 
+          "DEVOLUÇÃO DE SALDO"
+          },
+          {
+          "id": 
+          "314483768",
+          "name": 
+          "CLIENTE PENDENTE"
+          },
+          {
+          "id": 
+          "314483769",
+          "name": 
+          "AUDITORIA DE CARGA"
+          },
+          {
+          "id": 
+          "314483773",
+          "name": 
+          "DEVOLUÇÃO TEMPERADO"
+          },
+          {
+          "id": 
+          "314483783",
+          "name": 
+          "MAPEAMENTO DSF"
+          },
+          {
+          "id": 
+          "314483784",
+          "name": 
+          "AUDITORIA DE CARTÃO"
+          },
+          {
+          "id": 
+          "314483786",
+          "name": 
+          "DESBLOQUEIO DE CLIENTE"
+          }
+        ]
+      }
+    }
+  }
+]
+
+
+
+
+-- pegar IDS dos cards dentro de uma fase
+
+{
+  "query": "query { phase(id: \"333525857\") { cards { edges { node { id } } } } }"
 }
