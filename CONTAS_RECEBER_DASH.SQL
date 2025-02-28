@@ -1,4 +1,31 @@
-WITH pedidos_distintos AS (
+-- BI Contas a Receber
+
+-- documentos devolvidos
+SELECT
+    dd.tipo_unidade,
+    dd.unidade,
+    dd.tipo,
+    dd.codcliente,
+    dd.cliente,
+    dd.titulo,
+    TO_DATE(dd.emissaotitulo, 'YYYY-MM-DD') AS emissaotitulo,
+    dd.valortitulo,
+    dd.observacoes
+FROM
+    documentos_devolvidos dd
+WHERE
+    dd.tipo_unidade != 'Bodinho'
+    AND TO_DATE(dd.emissaotitulo, 'YYYY-MM-DD') BETWEEN DATE '2023-12-01' AND CURRENT_DATE
+ORDER BY
+    dd.unidade;
+
+
+ 
+
+ -------------------------------------------------------------------------------------------------
+
+ --entregue_pendente   
+ WITH pedidos_distintos AS (
     SELECT 
         eg.cod_pedido,
         eg.unidade,

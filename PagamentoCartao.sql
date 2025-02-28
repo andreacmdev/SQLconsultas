@@ -1,6 +1,4 @@
 select 
-	%(Tipo_Unidade)s as Tipo_Unidade,
-	%(Unidade)s as Unidade,
     dsf.DT_DSF, 
     card.*, 
     conta.DS_CON AS Conta, 

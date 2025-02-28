@@ -1,6 +1,4 @@
 select 
-%(Tipo_Unidade)s AS Tipo_Unidade,
-%(Unidade)s AS Unidade,
 Mes,
 Banco,
 Conta,
