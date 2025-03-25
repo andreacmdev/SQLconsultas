@@ -19,44 +19,30 @@ disabled = []
 parametros = r"C:\Users\andre\OneDrive\Documentos\Development\Alumiaço\Python\RELATÓRIOS\1 - PARAMETROS"
 caminho_scripts = r"C:\Users\andre\OneDrive\Documentos\Development\Alumiaço\Python\RELATÓRIOS\SCRIPTS"
 
+# Defina a unidade desejada aqui (ou deixe como None para processar todas as unidades)
+UNIDADE_DESEJADA = None  # Exemplo: "Unidade_A" ou None para todas
+
+# Função para carregar as conexões das unidades
 def carregarConexoesUnidades():
     connections = pd.read_excel(r"{}\connections.xlsx".format(parametros), usecols=['Status', 'unidade', 'tipo_unidade', 'host', 'name', 'port', 'user', 'senha'])
     return connections
 
-databases = carregarConexoesUnidades()
-
+# Função para testar a conexão com o banco de dados
 def test_connection(Status, unidade, tipo_unidade, host, name, port, user, senha):
     if Status == 'S':
         try:
             connection = mysql.connector.connect(
                 host=host,
-                port=int(port),  # Garante que seja um número
+                port=port,
                 user=user,
                 password=senha,
                 database=name
             )
             connection.close()
-        except mysql.connector.Error as e:
-            print(f"Erro de conexão na unidade {unidade}: {e}")
+        except mysql.connector.Error:
             disabled.append(unidade)
     elif Status == 'N':
         disabled.append(unidade)
-
-# Cria as threads para testar as conexões em paralelo
-threads = []
-for index, d in databases.iterrows():
-    Status, unidade, tipo_unidade, host, name, port, user, senha = d
-    t = threading.Thread(target=test_connection, args=(Status, unidade, tipo_unidade, host, name, port, user, senha))
-    threads.append(t)
-    t.start()
-
-for t in threads:
-    t.join()
-
-mask = databases['unidade'].isin(disabled)
-connected = databases.drop(databases[mask].index)
-
-print("Unidades sem conexão:", disabled)
 
 # Função para executar a query em uma unidade e retornar o DataFrame
 def ProdutosNaoContabilizados(conn):
@@ -76,7 +62,7 @@ def ProdutosNaoContabilizados(conn):
             database=conn['name']
         )
 
-        with open(r"{}\recebimento.sql".format(caminho_scripts), 'r', encoding="utf8") as f:
+        with open(r"{}\contas_internas.sql".format(caminho_scripts), 'r', encoding="utf8") as f:
             mycursor = mydbConn.cursor()
             mycursor.execute(f.read(), Variaveis)
             myresult = mycursor.fetchall()
@@ -88,25 +74,51 @@ def ProdutosNaoContabilizados(conn):
         print("ERRO DE CONEXAO NA UNIDADE: ", conn['unidade'])
         return pd.DataFrame()  # Retorna DataFrame vazio em caso de erro
 
-# Executar as queries em paralelo usando ThreadPoolExecutor
+# Defina a unidade desejada aqui (ou deixe como None para processar todas as unidades)
+UNIDADE_DESEJADA = "GM Maceio"  # Exemplo: "GM Maceio" ou None para todas
+
+# Carrega as conexões das unidades
+databases = carregarConexoesUnidades()
+
+# Filtra as unidades com base na unidade desejada
+if UNIDADE_DESEJADA:
+    databases = databases[databases['unidade'] == UNIDADE_DESEJADA]  # Filtra a unidade especificada
+
+# Testa as conexões das unidades
+threads = []
+for index, d in databases.iterrows():
+    Status, unidade, tipo_unidade, host, name, port, user, senha = d
+    t = threading.Thread(target=test_connection, args=(Status, unidade, tipo_unidade, host, name, port, user, senha))
+    threads.append(t)
+    t.start()
+
+for t in threads:
+    t.join()
+
+# Remove as unidades sem conexão
+mask = databases['unidade'].isin(disabled)
+connected = databases.drop(databases[mask].index)
+
+print("Unidades sem conexão:", disabled)
+
+# Executa as queries em paralelo usando ThreadPoolExecutor
 with concurrent.futures.ThreadPoolExecutor() as executor:
     results = list(executor.map(ProdutosNaoContabilizados, [row for _, row in connected.iterrows()]))
 
-
-# Concatenar os resultados em um único DataFrame
+# Concatena os resultados em um único DataFrame
 Query = pd.concat(results, ignore_index=True)
 
 # Caminho para o diretório onde o arquivo Excel será salvo
 output_dir = r"C:\Users\andre\OneDrive\Documentos\Development\Alumiaço\Python\RELATÓRIOS\OUTPUTS"
 
-# Verificar se o diretório existe, e se não, criá-lo
+# Verifica se o diretório existe, e se não, cria-o
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 # Caminho completo para o arquivo Excel
-path = os.path.join(output_dir, f"recebimento{pd.Timestamp.now().strftime('%y%m%d-%H%M%S')}.xlsx")
+path = os.path.join(output_dir, f"contas_internas['unidade']{pd.Timestamp.now().strftime('%y%m%d-%H%M%S')}.xlsx")
 
-# Converter os dados do DataFrame usando unidecode
+# Converte os dados do DataFrame usando unidecode
 def clean_text(value):
     if isinstance(value, str):
         return unidecode(value)
@@ -114,7 +126,7 @@ def clean_text(value):
 
 Query = Query.applymap(clean_text)
 
-# Salvar o DataFrame como um arquivo Excel
+# Salva o DataFrame como um arquivo Excel
 Query.to_excel(path, index=False, header=True)
 
 print("Arquivo Excel salvo com sucesso em:", path)

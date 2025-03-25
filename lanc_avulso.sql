@@ -1,7 +1,5 @@
 -- lançamentos avulsos controle de contas
 SELECT 
-    '{{ $json["tipo_unidade"] }}' as tipo_unidade,
-    '{{ $json["unidade"] }}' as unidade,
     contas.NU_CON as CONTA,
     conta.DS_CON,
     DT_LANCTO as data_lancamento,
@@ -20,5 +18,6 @@ LEFT JOIN mgusu01010 usuario ON contas.NU_USU = usuario.NU_USU
 LEFT JOIN mgcon01010 conta ON contas.NU_CON = conta.NU_CON
 WHERE 
     AVULSO = 'S' 
-    AND DT_LANCTO >= DATE_SUB(NOW(), interval 1 HOUR)  -- Lançamentos feitos na última hora
+    AND DT_LANCTO >= '2024-07-01'  -- Data inicial: 1º de julho de 2024
+    AND DT_LANCTO <= '2025-02-28'  -- Data final: 28 de fevereiro de 2025
 ORDER BY contas.DT_LANCTO DESC;

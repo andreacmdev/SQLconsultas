@@ -25,7 +25,7 @@ ORDER BY
  -------------------------------------------------------------------------------------------------
 
  --entregue_pendente   
- WITH pedidos_distintos AS (
+WITH pedidos_distintos AS (
     SELECT 
         eg.cod_pedido,
         eg.unidade,
@@ -75,18 +75,14 @@ SELECT
     mc.bloqueado,
     pd.origem,
     -- Removido o STRING_AGG da condição de pagamento
-    COALESCE(
-        (SELECT p.cond_pagamento
-         FROM pedidos p
-         JOIN status_pagamento_pedidos spp2  
-           ON p.unidade = spp2.unidade
-          AND p.cod_pedido = spp2.cod_pedido
-         WHERE p.unidade = pd.unidade
-           AND p.cod_cliente = pd.cod_cliente
-           AND spp2.totalpendente != 0
-         LIMIT 1),  
-        'N/A'
-    ) AS condicoes_pagamento,
+COALESCE(
+    (SELECT p.cond_pagamento
+     FROM pedidos p
+     WHERE p.unidade = pd.unidade
+       AND p.cod_pedido = pd.cod_pedido
+     LIMIT 1),  
+    'N/A'
+) AS condicoes_pagamento,
     COALESCE(ROUND(et.valor_entregue_total, 2), 0) AS valor_entregue_total
 FROM 
     pedidos_distintos pd

@@ -1,7 +1,7 @@
 WITH cte_datas_base AS (
     SELECT 
         GENERATE_SERIES(
-            DATE '2024-01-01', 
+            DATE '2025-01-01', 
             DATE_TRUNC('month', CURRENT_DATE), 
             INTERVAL '1 month'
         )::DATE AS data_base
@@ -16,7 +16,7 @@ cte_ultima_movimentacao_mes AS (
         cte_datas_base d
     LEFT JOIN estoque_produtos ep
         ON ep.data_movimentacao::timestamp <= (d.data_base + INTERVAL '1 month' - INTERVAL '1 day') 
-        AND ep.unidade = 'CD VIDROS'
+        -- AND ep.unidade = 'CD VIDROS'
     GROUP BY
         ep.unidade, ep.cod_produto, d.data_base
 ),
@@ -80,8 +80,8 @@ SELECT
 FROM
     cte_preenchimento_ausencias
 WHERE
-    unidade = 'CD VIDROS'
-    AND data_base <= CURRENT_DATE
+    -- unidade = 'CD VIDROS'
+    data_base <= CURRENT_DATE
 ORDER BY
     cod_produto,
-    data_referencia;
+    data_referencia

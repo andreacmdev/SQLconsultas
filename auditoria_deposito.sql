@@ -26,6 +26,8 @@ AND DATE(dep.DT_REFERENCIA) < DATE_SUB(CURRENT_DATE, INTERVAL 30 DAY);
 
 
 select
+    '{{ $json["tipo_unidade"] }}' as tipo_unidade,
+    '{{ $json["unidade"] }}' as unidade,
     m.NU_CON ,
     m.DT_LANCTO as data_deposito ,
     m.DT_REF as referencia_dep,

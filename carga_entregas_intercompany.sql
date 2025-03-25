@@ -35,9 +35,9 @@ select
     LEFT JOIN 
         TotalPendentes tp ON eg.cod_pedido = tp.cod_pedido AND eg.unidade = tp.unidade
     WHERE 
-        eg.unidade = 'VITORIA DE SANTO ANTAO'
-        AND eg.data_hora_entregue >= CURRENT_DATE - INTERVAL '30 DAYS'
-        and eg.nome_cliente = 'GM GLASS RECIFE'
+        -- eg.unidade = 'Oazem'
+        eg.data_hora_entregue >= CURRENT_DATE - INTERVAL '30 DAYS'
+        -- and eg.nome_cliente = 'GM Maceio'
 group by 
     eg.tipo_unidade ,
     eg.unidade ,
