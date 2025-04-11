@@ -1,3 +1,5 @@
+-- script BI Estoque
+
 WITH cte_datas_base AS (
     SELECT 
         GENERATE_SERIES(
@@ -8,6 +10,7 @@ WITH cte_datas_base AS (
 ),
 cte_ultima_movimentacao_mes AS (
     SELECT
+        ep.tipo_unidade,
         ep.unidade,
         ep.cod_produto,
         d.data_base,
@@ -16,12 +19,24 @@ cte_ultima_movimentacao_mes AS (
         cte_datas_base d
     LEFT JOIN estoque_produtos ep
         ON ep.data_movimentacao::timestamp <= (d.data_base + INTERVAL '1 month' - INTERVAL '1 day') 
-        -- AND ep.unidade = 'CD VIDROS'
+    WHERE 
+        ep.unidade IN (
+            'Oazem', 'INBRAVIDROS', '4D Vidros', 'BRASILIA', 'FORTALEZA', 'VITORIA DE SANTO ANTAO',
+            'ALLGLASS TEMPERA', 'TEMPER PATOS', 'Alumiaco Recife', 'GM Recife', 'Agreste Vidros', 
+            'GM Salvador', 'GM Maceio', 'IDVIDROS', 'PERFILUX', 'OLINDA', 'IRECE', 'ARAPIRACA', 
+            'BARROSREIS', 'GMFEIRA', 'GM JUAZEIRO', 'SOBRAL', 'GM FORTALEZA', 'DVM PARAIBA', 
+            'BELGA POLIMEROS', 'ALLGLASS LOJA', 'GM FORTALEZA FILIAL', 'GM MONTESE', 'CD VIDROS', 
+            'CD ALUMINIO', 'PONTO VIDRO', 'BFVIDROS', 'CAMACARI', 'PICOS', 'RPVDIROS', 
+            'CAPIMGROSSO', 'RNVIDROS', 'GRAVATA', 'BELO JARDIM', 'ALAGOINHA', 'ARCOVERDE', 
+            'IGARASSU', 'SALGUEIRO', 'MANDACARU', 'ARENAVIDROS', 'CRUZ DAS ALMAS', 'ITAPIPOCA', 
+            'DELMIRO GOUVEIA', 'SANTA CRUZ', 'GOIANA', 'TIANGUA', 'CABO VIDROS'
+        )
     GROUP BY
-        ep.unidade, ep.cod_produto, d.data_base
+        ep.tipo_unidade, ep.unidade, ep.cod_produto, d.data_base
 ),
 cte_saldos_completos AS (
     SELECT
+        u.tipo_unidade
         u.unidade,
         u.cod_produto,
         u.data_base,
@@ -41,6 +56,7 @@ cte_saldos_completos AS (
 ),
 cte_preenchimento_ausencias AS (
     SELECT
+        tipo_unidade,
         unidade,
         cod_produto,
         data_base,
@@ -63,6 +79,7 @@ cte_preenchimento_ausencias AS (
         cte_saldos_completos
 )
 SELECT
+    tipo_unidade,
     unidade,
     cod_produto,
     nome_produto,
@@ -80,8 +97,7 @@ SELECT
 FROM
     cte_preenchimento_ausencias
 WHERE
-    -- unidade = 'CD VIDROS'
     data_base <= CURRENT_DATE
 ORDER BY
     cod_produto,
-    data_referencia
+    data_referencia;

@@ -28,7 +28,7 @@ LEFT JOIN (
      WHERE NU_CON = saldo.NU_CON)
 WHERE m.TABELA = 'mgcon01010'
 AND m.TIPO = '3'
-AND m.DTH >= DATE_SUB(NOW(), INTERVAL 5000 HOUR);
+AND m.DTH >= DATE_SUB(NOW(), INTERVAL 1 HOUR);
 
 
 ------------------------------------------ N8N----------------------------------------------

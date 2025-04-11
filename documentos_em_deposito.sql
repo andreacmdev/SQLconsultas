@@ -1,8 +1,11 @@
 -- docs em deposito
-(select  
+(select
+    %(Tipo_Unidade)s AS Tipo_Unidade,
+    %(Unidade)s AS Unidade,  
     boletos.DS_BOLETO as nu_documento, 
     titulos.NU_CLI as cod_cliente,
     clientes.DS_CLI as nome_cliente, 
+    clientes.APEL_FANT as nome_fantasia,
     boletos.ID_STATUS as status, 
     'EM DEPOSITO' AS status_documento,
     'boleto' as tipo_documento, 
@@ -26,11 +29,13 @@ where boletos.ID_STATUS = 4 -- em deposito
   and dsf.tp_dsf = 2 
   and clientes.DS_CLI is not null) 
 UNION ALL
--- Cheques
 (select 
+    %(Tipo_Unidade)s AS Tipo_Unidade,
+    %(Unidade)s AS Unidade,  
     cheques.nu_cheque as nu_documento, 
     titulos.NU_CLI as cod_cliente,
     clientes.DS_CLI as nome_cliente, 
+    clientes.APEL_FANT as nome_fantasia,
     cheques.ID_STATUS as status, 
     'EM DEPOSITO' AS status_documento,
     'cheque' as tipo_documento, 

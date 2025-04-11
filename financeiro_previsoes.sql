@@ -50,4 +50,5 @@ LEFT JOIN mgcta01018 formas ON pagamentos.NU_CLT = formas.NU_CLT
 WHERE
     titulos.ID_STAT_LANCTO IN (5, 1, 6)  
     AND titulos.COD_LANCTO = 2
-    AND titulos.DT_VENCTO BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL 15 DAY
+    AND titulos.DT_VENCTO >= CURDATE()
+    AND titulos.DT_VENCTO < CURDATE() + INTERVAL 15 DAY'    

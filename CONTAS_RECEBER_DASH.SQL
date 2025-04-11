@@ -37,7 +37,7 @@ WITH pedidos_distintos AS (
     FROM 
         entregas_geral eg
     WHERE 
-        eg.data_hora_entregue >= CURRENT_DATE - INTERVAL '6 MONTHS'
+        eg.data_hora_entregue >= CURRENT_DATE - INTERVAL '12 MONTHS'
     GROUP BY 
         eg.cod_pedido, 
         eg.unidade, 
@@ -103,7 +103,7 @@ LEFT JOIN
     ON pd.cod_pedido = et.cod_pedido  
     AND pd.unidade = et.unidade  
 WHERE 
-    spp.totalpendente != 0  
+    spp.totalpendente != 0
 GROUP BY 
     pd.unidade,
     pd.origem,

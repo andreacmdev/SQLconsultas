@@ -15,7 +15,7 @@ select
     eg.cod_pedido,
     eg.pedido_cliente , 
     eg.cod_romaneio ,
-    eg.data_hora_entregue,
+    eg.data_hora_entregue, 
     eg.carga,
     eg.categoria_produto,
     eg.nome_produto,
@@ -36,7 +36,7 @@ select
         TotalPendentes tp ON eg.cod_pedido = tp.cod_pedido AND eg.unidade = tp.unidade
     WHERE 
         -- eg.unidade = 'Oazem'
-        eg.data_hora_entregue >= CURRENT_DATE - INTERVAL '30 DAYS'
+        eg.data_hora_entregue BETWEEN '2025-03-01' AND CURRENT_DATE
         -- and eg.nome_cliente = 'GM Maceio'
 group by 
     eg.tipo_unidade ,

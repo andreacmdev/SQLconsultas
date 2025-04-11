@@ -62,7 +62,7 @@ def ProdutosNaoContabilizados(conn):
             database=conn['name']
         )
 
-        with open(r"{}\contas_internas.sql".format(caminho_scripts), 'r', encoding="utf8") as f:
+        with open(r"{}\financeiro_previsoes.sql".format(caminho_scripts), 'r', encoding="utf8") as f:
             mycursor = mydbConn.cursor()
             mycursor.execute(f.read(), Variaveis)
             myresult = mycursor.fetchall()
@@ -75,7 +75,7 @@ def ProdutosNaoContabilizados(conn):
         return pd.DataFrame()  # Retorna DataFrame vazio em caso de erro
 
 # Defina a unidade desejada aqui (ou deixe como None para processar todas as unidades)
-UNIDADE_DESEJADA = "GM Maceio"  # Exemplo: "GM Maceio" ou None para todas
+UNIDADE_DESEJADA = "CDVIDROS"  # Exemplo: "GM Maceio" ou None para todas
 
 # Carrega as conexões das unidades
 databases = carregarConexoesUnidades()
@@ -116,7 +116,7 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 # Caminho completo para o arquivo Excel
-path = os.path.join(output_dir, f"contas_internas['unidade']{pd.Timestamp.now().strftime('%y%m%d-%H%M%S')}.xlsx")
+path = os.path.join(output_dir, f"CDVIDROS{pd.Timestamp.now().strftime('%y%m%d-%H%M%S')}.xlsx")
 
 # Converte os dados do DataFrame usando unidecode
 def clean_text(value):

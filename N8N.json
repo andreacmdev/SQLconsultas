@@ -20,6 +20,10 @@
 }
 
 
+--JSONPegar id das etiquetas
+{
+  "query": "query { pipe(id: 305619354) { labels { id name } } }"
+}
 
 
 -- id das etiquetas do pipefy 'ROTINA Controladoria'
@@ -58,6 +62,14 @@
           "name": 
           "MAPEAMENTO DSF"
           },
+
+          {
+          "id": 
+          "314906512",
+          "name": 
+          "DEVOLUCAO"
+          },
+          
           {
           "id": 
           "314483784",
