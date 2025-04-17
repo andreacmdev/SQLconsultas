@@ -34,10 +34,8 @@ select
         entregas_geral eg
     LEFT JOIN 
         TotalPendentes tp ON eg.cod_pedido = tp.cod_pedido AND eg.unidade = tp.unidade
-    WHERE 
-        -- eg.unidade = 'Oazem'
-        eg.data_hora_entregue BETWEEN '2025-03-01' AND CURRENT_DATE
-        -- and eg.nome_cliente = 'GM Maceio'
+WHERE 
+    eg.data_hora_entregue BETWEEN NOW() - INTERVAL '30 days' AND NOW()
 group by 
     eg.tipo_unidade ,
     eg.unidade ,

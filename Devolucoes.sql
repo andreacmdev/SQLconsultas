@@ -81,4 +81,4 @@ LEFT JOIN (
 LEFT JOIN mgusu01010 usuarios ON devolvidos.NU_USU = usuarios.NU_USU
 LEFT JOIN mgmmv01010 motivos ON devolvidos.NU_MMV = motivos.NU_MMV
 LEFT JOIN obs_devolucao od ON devolvidos.NU_OBS_DEV = od.NU_OBS_DEV
-WHERE devolvidos.DataDevolucao BETWEEN '2024-12-11' and '2024-12-31'
+WHERE devolvidos.DataDevolucao BETWEEN CURDATE() - INTERVAL 1 MONTH AND CURDATE();
