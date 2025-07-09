@@ -1,0 +1,94 @@
+# Vou gerar um JSON simulado para esse fluxo no N8N com os nodes estruturados conforme o layout que o André pediu.
+
+import json
+
+flow = {
+    "name": "Alerta Preço Mínimo",
+    "nodes": [
+        {
+            "parameters": {
+                "interval": 30,
+                "unit": "minutes"
+            },
+            "name": "Cron",
+            "type": "n8n-nodes-base.cron",
+            "typeVersion": 1,
+            "position": [200, 300]
+        },
+        {
+            "parameters": {
+                "query": "SELECT unidade, produto, preco_venda FROM pedidos WHERE data_pedido >= NOW() - INTERVAL '30 minutes' AND unidade IN ('PERFILUX', 'MATRIZ', 'FILIAL1', 'FILIAL2')"
+            },
+            "name": "Query Pedidos",
+            "type": "n8n-nodes-base.postgres",
+            "typeVersion": 1,
+            "position": [400, 300]
+        },
+        {
+            "parameters": {
+                "sheetId": "YOUR_SHEET_ID",
+                "range": "base_precos!A:C"
+            },
+            "name": "Get Precos Minimos",
+            "type": "n8n-nodes-base.googleSheets",
+            "typeVersion": 1,
+            "position": [400, 500]
+        },
+        {
+            "parameters": {
+                "functionCode": "const precosMinimos = {};\nitems.forEach(item => {\n  const unidade = item.json.unidade;\n  const produto = item.json.produto;\n  const preco = parseFloat(item.json.preco_minimo.toString().replace(',', '.'));\n  if (!precosMinimos[unidade]) {\n    precosMinimos[unidade] = {};\n  }\n  precosMinimos[unidade][produto] = preco;\n});\nreturn [{ json: precosMinimos }];"
+            },
+            "name": "Organiza Precos",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [600, 500]
+        },
+        {
+            "parameters": {
+                "batchSize": 1
+            },
+            "name": "SplitInBatches",
+            "type": "n8n-nodes-base.splitInBatches",
+            "typeVersion": 1,
+            "position": [600, 300]
+        },
+        {
+            "parameters": {
+                "functionCode": "const pedido = items[0].json;\nconst precos = $items(\"Organiza Precos\")[0].json;\nconst unidade = pedido.unidade;\nconst produto = pedido.produto;\nconst precoVenda = parseFloat(pedido.preco_venda.toString().replace(',', '.'));\nif (precos[unidade] && precos[unidade][produto] && precoVenda < precos[unidade][produto]) {\n  return [items[0]];\n}\nreturn [];"
+            },
+            "name": "Verifica Preco",
+            "type": "n8n-nodes-base.function",
+            "typeVersion": 1,
+            "position": [800, 300]
+        },
+        {
+            "parameters": {
+                "message": "⚠️ Alerta: Pedido emitido na unidade {{$json.unidade}} para o produto {{$json.produto}} com preço de R$ {{$json.preco_venda}} — abaixo do mínimo!"
+            },
+            "name": "Enviar Alerta",
+            "type": "n8n-nodes-base.emailSend",
+            "typeVersion": 1,
+            "position": [1000, 300]
+        }
+    ],
+    "connections": {
+        "Cron": {
+            "main": [["Query Pedidos"]]
+        },
+        "Query Pedidos": {
+            "main": [["SplitInBatches"]]
+        },
+        "Get Precos Minimos": {
+            "main": [["Organiza Precos"]]
+        },
+        "SplitInBatches": {
+            "main": [["Verifica Preco"]]
+        },
+        "Organiza Precos": {
+            "main": []
+        },
+        "Verifica Preco": {
+            "main": [["Enviar Alerta"]]
+        }
+    }
+}

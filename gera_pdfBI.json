@@ -1,0 +1,157 @@
+{
+  "name": "PowerBI Export",
+  "nodes": [
+    {
+      "parameters": {
+        "requestMethod": "POST",
+        "url": "https://login.microsoftonline.com/21758a05-2eed-4ea5-98e5-76b0c4c37854/oauth2/v2.0/token",
+        "options": {
+          "bodyContentType": "form-urlencoded"
+        },
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "client_id",
+              "value": "7e7f2f7c-bc05-4b8a-922a-3057d92495da"
+            },
+            {
+              "name": "scope",
+              "value": "https://analysis.windows.net/powerbi/api/.default"
+            },
+            {
+              "name": "client_secret",
+              "value": "9D18Q~eFenRmiwBAoXWCD4cWyW-iXPiUmagv6ao-"
+            },
+            {
+              "name": "grant_type",
+              "value": "client_credentials"
+            }
+          ]
+        },
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        }
+      },
+      "name": "Get Azure Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        -20,
+        -320
+      ],
+      "id": "1c806fa2-9357-44d8-a520-ff58e10cbecc"
+    },
+    {
+      "parameters": {
+        "functionCode": "item.access_token = $json[\"access_token\"];\nreturn item;"
+      },
+      "name": "Set Token1",
+      "type": "n8n-nodes-base.functionItem",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -320
+      ],
+      "id": "4c7538fc-4dfd-4b02-9eb6-9a37a03c47e3"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        -320
+      ],
+      "id": "d4f9fc59-030a-4049-b99a-55481e50dece",
+      "name": "Schedule Trigger1"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "url": "https://api.powerbi.com/v1.0/myorg/reports",
+        "options": {
+          "fullResponse": true
+        }
+      },
+      "name": "Access PowerBI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -320
+      ],
+      "id": "566a3108-13bc-40f0-a255-0b90739a54de",
+      "credentials": {
+        "oAuth2Api": {
+          "id": "CzcZ1i3MpOVaNCpI",
+          "name": "PowerBI"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Get Azure Token": {
+      "main": [
+        [
+          {
+            "node": "Set Token1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Token1": {
+      "main": [
+        [
+          {
+            "node": "Access PowerBI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Get Azure Token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f939bd84-734b-437e-9526-56e11d53a625",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5fbf1f88117a13de2d88da8695b44260b533f3a547e7c2208047dba212bd37aa"
+  },
+  "id": "cq8Ps6TbZeMf55hw",
+  "tags": [
+    {
+      "createdAt": "2025-03-21T11:47:30.374Z",
+      "updatedAt": "2025-03-21T11:47:30.374Z",
+      "id": "CvCy3KNJKyMxSQ3C",
+      "name": "Control"
+    }
+  ]
+}

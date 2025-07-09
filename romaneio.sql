@@ -1,0 +1,1 @@
+select m.DT_PRM, m.DT_ROM, m.NU_ROM_EXTERNO, m.GERADO_COMPRA_TITULO from mgrom01010 m where m.ID_TP_ROM = 4
