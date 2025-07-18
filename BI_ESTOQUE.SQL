@@ -144,3 +144,127 @@ WHERE
 ORDER BY
     cod_produto,
     data_referencia;
+
+
+
+
+
+
+
+-------------------------------------------------------------------------------------------------
+
+WITH estoque_filtrado AS (
+    SELECT
+        tipo_unidade,
+        unidade,
+        cod_produto,
+        nome_produto,
+        categoria,
+        classe,
+        subclasse,
+        TO_CHAR(TO_DATE(data_movimentacao, 'YYYY-MM-DD'), 'YYYY-MM') AS mes_movimentacao,
+        CAST(REPLACE(estoque_atual, ',', '.') AS NUMERIC) AS estoque_numerico
+    FROM
+        estoque_produtos
+    WHERE
+        TO_DATE(data_movimentacao, 'YYYY-MM-DD') >= DATE '2024-03-01' AND unidade IN (
+    'Oazem',
+    'INBRAVIDROS',
+    '4D Vidros',
+    'BRASILIA',
+    'FORTALEZA',
+    'VITORIA DE SANTO ANTAO',
+    'ALLGLASS TEMPERA',
+    'TEMPER PATOS',
+    'Alumiaco Recife',
+    'GM Recife',
+    'Agreste Vidros',
+    'GM Salvador',
+    'GM Maceio',
+    'IDVIDROS',
+    'PERFILUX',
+    'OLINDA',
+    'IRECE',
+    'ARAPIRACA',
+    'BARROSREIS',
+    'GMFEIRA',
+    'GM JUAZEIRO',
+    'SOBRAL',
+    'GM FORTALEZA',
+    'DVM PARAIBA',
+    'BELGA POLIMEROS',
+    'ALLGLASS LOJA',
+    'GM FORTALEZA FILIAL',
+    'GM MONTESE',
+    'CD VIDROS',
+    'CD ALUMINIO',
+    'PONTO VIDRO',
+    'BFVIDROS',
+    'CAMACARI',
+    'PICOS',
+    'RPVDIROS',
+    'CAPIMGROSSO',
+    'RNVIDROS',
+    'GRAVATA',
+    'BELO JARDIM',
+    'ALAGOINHA',
+    'ARCOVERDE',
+    'IGARASSU',
+    'SALGUEIRO',
+    'MANDACARU',
+    'ARENAVIDROS',
+    'CRUZ DAS ALMAS',
+    'ITAPIPOCA',
+    'DELMIRO GOUVEIA',
+    'SANTA CRUZ',
+    'GOIANA',
+    'ALAGOAS VIDROS',
+    'CABO VIDROS')
+),
+meses_zerados_por_produto AS (
+    SELECT
+        tipo_unidade,
+        unidade,
+        cod_produto,
+        -- Lista distinta dos meses em que o estoque foi zero
+        ARRAY_AGG(DISTINCT mes_movimentacao ORDER BY mes_movimentacao)
+            FILTER (WHERE estoque_numerico = 0) AS meses_estoque_zero
+    FROM
+        estoque_filtrado
+    GROUP BY
+        tipo_unidade,
+        unidade,
+        cod_produto
+),
+produtos_distintos AS (
+    SELECT DISTINCT
+        tipo_unidade,
+        unidade,
+        cod_produto,
+        nome_produto,
+        categoria,
+        classe,
+        subclasse
+    FROM
+        estoque_produtos
+)
+SELECT
+    pd.tipo_unidade,
+    pd.unidade,
+    pd.cod_produto,
+    pd.nome_produto,
+    pd.categoria,
+    pd.classe,
+    pd.subclasse,
+    COALESCE(ARRAY_TO_STRING(mz.meses_estoque_zero, ', '), '') AS meses_estoque_zero
+FROM
+    produtos_distintos pd
+LEFT JOIN
+    meses_zerados_por_produto mz
+    ON pd.tipo_unidade = mz.tipo_unidade
+    AND pd.unidade = mz.unidade
+    AND pd.cod_produto = mz.cod_produto
+ORDER BY
+    pd.tipo_unidade,
+    pd.unidade,
+    pd.cod_produto
