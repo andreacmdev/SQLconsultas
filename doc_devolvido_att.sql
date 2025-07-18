@@ -1,4 +1,4 @@
--- Relatório com vínculo direto por titulo_gerado para capturar ID_PERDA
+-- relatorio MySQL documentos devolvidos
 SELECT  
   boletos.Pendente_Tipo,
   CASE 
