@@ -76,7 +76,7 @@ def ProdutosNaoContabilizados(conn):
             database=conn['name']
         )
 
-        with open(r"{}\financeiro_previsoes.sql".format(caminho_scripts), 'r', encoding="utf8") as f:
+        with open(r"{}\titulo_pendente.sql".format(caminho_scripts), 'r', encoding="utf8") as f:
             mycursor = mydbConn.cursor()
             mycursor.execute(f.read(), Variaveis)
             myresult = mycursor.fetchall()
@@ -88,7 +88,7 @@ def ProdutosNaoContabilizados(conn):
         print("ERRO DE CONEXAO NA UNIDADE: ", conn['unidade'])
         return pd.DataFrame()  # Retorna DataFrame vazio em caso de erro
 
-# Executar as queries em paralelo usando ThreadPoolExecutor
+# Executar as queries em paralelo usando ThreadPoolExecutor7
 with concurrent.futures.ThreadPoolExecutor() as executor:
     results = list(executor.map(ProdutosNaoContabilizados, [row for _, row in connected.iterrows()]))
 
@@ -104,7 +104,7 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 # Caminho completo para o arquivo Excel
-path = os.path.join(output_dir, f"financeiro_previsoes{pd.Timestamp.now().strftime('%y%m%d-%H%M%S')}.xlsx")
+path = os.path.join(output_dir, f"titulos_pendentes{pd.Timestamp.now().strftime('%y%m%d-%H%M%S')}.xlsx")
 
 # Converter os dados do DataFrame usando unidecode
 def clean_text(value):

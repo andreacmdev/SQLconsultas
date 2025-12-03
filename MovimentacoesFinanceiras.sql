@@ -139,3 +139,7 @@ WHERE (pagamentos.data_lancto  >= '2024-04-01'
 	and titulos.COD_LANCTO = '1' and titulos.TITULO_AVULSO = 'S' 
 	) GROUP BY formas.NU_DLT  
 ) 
+
+
+
+

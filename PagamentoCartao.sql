@@ -1,4 +1,6 @@
 select 
+    %(Tipo_Unidade)s AS Tipo_Unidade,
+    %(Unidade)s AS Unidade, 
     dsf.DT_DSF, 
     card.*, 
     conta.DS_CON AS Conta, 
@@ -39,7 +41,6 @@ LEFT JOIN mgcli01010 cliente ON clt.NU_CLI = cliente.NU_CLI
 LEFT JOIN mgcon01010 conta ON conta.NU_CON = dsf.NU_CON
 LEFT JOIN mgban01010 banco ON banco.NU_BAN = dsf.NU_BAN
 WHERE
-    QtdParcelas > 6
-    AND DATE(dsf.DT_DSF) BETWEEN '2024-12-11' and '2024-12-31'
+    DATE(dsf.DT_DSF) BETWEEN '2024-12-11' and '2025-12-31'
 ORDER BY
     dsf.DT_DSF DESC;

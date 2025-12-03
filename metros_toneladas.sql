@@ -56,6 +56,9 @@ WHERE p.unidade IN ('BRASILIA', 'FORTALEZA', '4D Vidros')
 
 
 
+
+
+
 SELECT
     p.unidade,
     p.categoria_produto,
@@ -89,6 +92,9 @@ WHERE p.unidade IN ('BRASILIA', 'FORTALEZA', '4D Vidros')
   )
 GROUP BY p.unidade, p.categoria_produto
 ORDER BY p.unidade, p.categoria_produto;
+
+
+
 
 
 SELECT 
