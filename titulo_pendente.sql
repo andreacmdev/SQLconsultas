@@ -23,7 +23,15 @@ select
     DATEDIFF(CURDATE(), pedidos.DT_PVE) AS tempo_pendente,
     rom.valor_entregue ,
     saldo_cli.VLR_SALDO AS saldo_cliente,
-    dtrom.DT_ROM
+    dtrom.DT_ROM,
+    pedidos.ID_TP_PED ,
+    case pedidos.ID_TP_PED 
+        when 1 then 'Serie'
+        when 2 then 'Engenharia'
+        when 3 then 'Serviço'
+        when 5 then 'Laminado'
+        else 'Desconhecido'
+   end as tipo_pedido
 FROM mgpve01010 pedidos
 LEFT JOIN mgcpg01010 cond 
     ON pedidos.NU_CPG = cond.NU_CPG
