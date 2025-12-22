@@ -45,7 +45,7 @@ LEFT JOIN mgcta01017 AS pagamentos ON (titulos.NU_CLT = pagamentos.NU_CLT)
 left join mgcol01010 col on col.NU_COL = titulos.NU_COL    
 left join mgcon01010 contas on contas.NU_CON = formas.NU_CON       
 WHERE  
-	titulos.DT_PAGTO >= '2025-11-01' and titulos.DT_PAGTO <= '2025-11-30'
+	titulos.DT_PAGTO >= '2025-11-01'
 	AND titulos.COD_LANCTO = 2 And titulos.ID_STAT_LANCTO = 2
 	order by titulos.DS_CPG 
 ) 
@@ -90,7 +90,7 @@ left join mgtxc01010 titConta on (titulos.NU_CTA=titConta.NU_CTA)
 left join mgccu01010 centroCusto on (titConta.NU_CCU=centroCusto.NU_CCU) 
 left join mgcpc01010 planoConta on (titConta.NU_CPC=planoConta.NU_CPC)  
 left join mgcon01010 contas on contas.NU_CON = formas.NU_CON   
-WHERE (pagamentos.data_lancto  >= '2025-11-01' and PAGAMENTOS.data_lancto  <= '2025-11-30' and titulos.ID_STAT_LANCTO <> '4'    
+WHERE (pagamentos.data_lancto  >= '2025-11-01' and titulos.ID_STAT_LANCTO <> '4'    
 	AND pagamentos.TP_LANCTO = 'E' ) GROUP BY formas.NU_DLT ) 
 UNION ALL 
 (
@@ -134,7 +134,7 @@ left join mgtxc01010 titConta on (titulos.NU_CTA=titConta.NU_CTA)
 left join mgccu01010 centroCusto on (titConta.NU_CCU=centroCusto.NU_CCU)    
 left join mgcpc01010 planoConta on (titConta.NU_CPC=planoConta.NU_CPC)  
 left join mgcon01010 contas on contas.NU_CON = formas.NU_CON    
-WHERE (pagamentos.data_lancto  >= '2024-11-01' and pagamentos.data_lancto  <= '2025-11-30'
+WHERE (pagamentos.data_lancto  >= '2025-11-01'
 	AND pagamentos.TP_LANCTO = 'E' and titulos.ID_STAT_LANCTO = '2' 
 	and titulos.COD_LANCTO = '1' and titulos.TITULO_AVULSO = 'S' 
 	) GROUP BY formas.NU_DLT  
