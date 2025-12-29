@@ -76,7 +76,7 @@ def ProdutosNaoContabilizados(conn):
             database=conn['name']
         )
 
-        with open(r"{}\painel_financeiro.sql".format(caminho_scripts), 'r', encoding="utf8") as f:
+        with open(r"{}\titulo_pendente.sql".format(caminho_scripts), 'r', encoding="utf8") as f:
             mycursor = mydbConn.cursor()
             mycursor.execute(f.read(), Variaveis)
             myresult = mycursor.fetchall()
@@ -92,7 +92,6 @@ def ProdutosNaoContabilizados(conn):
 with concurrent.futures.ThreadPoolExecutor() as executor:
     results = list(executor.map(ProdutosNaoContabilizados, [row for _, row in connected.iterrows()]))
 
-
 # Concatenar os resultados em um único DataFrame
 Query = pd.concat(results, ignore_index=True)
 
@@ -104,7 +103,7 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 # Caminho completo para o arquivo Excel
-path = os.path.join(output_dir, f"painel_financeiro{pd.Timestamp.now().strftime('%y%m%d-%H%M%S')}.xlsx")
+path = os.path.join(output_dir, f"titulo_pendente{pd.Timestamp.now().strftime('%y%m%d-%H%M%S')}.xlsx")
 
 # Converter os dados do DataFrame usando unidecode
 def clean_text(value):

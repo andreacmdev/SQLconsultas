@@ -17,5 +17,3 @@ FROM pedidos p
 WHERE unidade = 'GM MONTESE'
   AND p.data_hora_pedido >= date_trunc('month', CURRENT_DATE)
   AND p.data_hora_pedido <  date_trunc('month', CURRENT_DATE) + INTERVAL '1 month';
-
-A
