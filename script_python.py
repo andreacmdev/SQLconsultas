@@ -76,7 +76,7 @@ def ProdutosNaoContabilizados(conn):
             database=conn['name']
         )
 
-        with open(r"{}\titulo_pendente.sql".format(caminho_scripts), 'r', encoding="utf8") as f:
+        with open(r"{}\venda_chaparia.sql".format(caminho_scripts), 'r', encoding="utf8") as f:
             mycursor = mydbConn.cursor()
             mycursor.execute(f.read(), Variaveis)
             myresult = mycursor.fetchall()
@@ -103,7 +103,7 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 # Caminho completo para o arquivo Excel
-path = os.path.join(output_dir, f"titulos_pendentes{pd.Timestamp.now().strftime('%y%m%d-%H%M%S')}.xlsx")
+path = os.path.join(output_dir, f"venda_chaparia260119-074000.xlsx")
 
 # Converter os dados do DataFrame usando unidecode
 def clean_text(value):

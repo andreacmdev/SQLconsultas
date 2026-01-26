@@ -25,6 +25,7 @@ select
     saldo_cli.VLR_SALDO AS saldo_cliente,
     dtrom.DT_ROM,
     pedidos.ID_TP_PED ,
+    TIT.DT_PAGTO,
     case pedidos.ID_TP_PED 
         when 1 then 'Serie'
         when 2 then 'Engenharia'
@@ -71,5 +72,5 @@ LEFT JOIN (
 ) saldo_cli
     ON pedidos.NU_CLI = saldo_cli.NU_CLI
 WHERE 
-    pedidos.DT_PVE > '2024-10-01'
-    AND tit.ID_STAT_LANCTO = '1';
+    pedidos.DT_PVE >= '2025-01-01'
+    AND tit.ID_STAT_LANCTO in ('1', '2');

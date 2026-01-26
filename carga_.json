@@ -1,0 +1,1011 @@
+{
+  "name": "Auditoria_carga",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                2,
+                3,
+                4,
+                5,
+                6
+              ],
+              "triggerAtHour": 9,
+              "triggerAtMinute": 15
+            }
+          ]
+        }
+      },
+      "id": "a3e656f6-6adc-416c-9d67-55cc2bd3ead7",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -640,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "-- auditoria de carga\nSELECT\n    tipo_unidade,\n    unidade, \n    tipo_entrega,\n    tipo_veiculo,\n    placa_veiculo,\n    round(sum(valor_entregue + coalesce(acrescimo, 0)), 2),\n    count(distinct(cod_romaneio)) AS total_romaneio,\n    rota,\n    data_hora_entregue,\n    nome_cliente,\n    cod_romaneio,\n    carga\nFROM\n    entregas_geral eg\nWHERE\n    data_hora_entregue::Date = current_date - 1 \n    AND carga IS NULL\n    AND tipo_entrega = 'ENTREGA'\nGROUP BY\n    tipo_unidade, unidade, tipo_entrega, tipo_veiculo, placa_veiculo, rota, nome_cliente, cod_romaneio, data_hora_entregue, carga\nUNION ALL\nSELECT\n    tipo_unidade,\n    unidade, \n    tipo_entrega,\n    tipo_veiculo,\n    placa_veiculo,\n    round(sum(valor_entregue + coalesce(acrescimo, 0)), 2),\n    count(distinct(cod_romaneio)) AS total_romaneio,\n    rota,\n    data_hora_entregue,\n    nome_cliente,\n    cod_romaneio,\n    carga\nFROM\n    entregas_geral eg\nWHERE\n    data_hora_entregue::Date = current_date - 1 \n    AND carga IS NOT NULL\n    AND tipo_entrega = 'ENTREGA'\nGROUP BY\n    tipo_unidade, unidade, tipo_entrega, tipo_veiculo, placa_veiculo, rota, nome_cliente, cod_romaneio, data_hora_entregue, carga",
+        "options": {}
+      },
+      "id": "4f0339b4-8e0e-42c8-b1ef-f2bf9eb2e6ea",
+      "name": "Postgres",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [
+        120,
+        320
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "ZN57S9HWKSzFz92C",
+          "name": "Alumiaco Corporativo"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {
+          "fileName": "={{ $('ARQUIVO').item.json.arq }}"
+        }
+      },
+      "id": "586c40b2-0d77-4764-ae7e-4b9d4aeae230",
+      "name": "Convert to File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        320
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "ff2d99b5-83d6-479f-85e1-85dd97a97fb8",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1160,
+        320
+      ],
+      "webhookId": "eccda355-c70f-4492-8a2c-0b51290f3705"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "marcolanoperacoes",
+        "fileName": "={{ $('ARQUIVO').item.json.arq }}",
+        "additionalFields": {
+          "acl": "publicReadWrite"
+        }
+      },
+      "id": "8b1dedff-77c5-44ec-b69a-85de82a75c9a",
+      "name": "AWS S31",
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        760,
+        320
+      ],
+      "credentials": {
+        "aws": {
+          "id": "JFruCydWV7liEYv1",
+          "name": "AWS Diego"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "bucketName": "marcolanoperacoes",
+        "fileKey": "=RelFinFELIPE.xlsx",
+        "options": {}
+      },
+      "id": "fb3f3532-af3b-4c42-a97c-567ba9e1c7d6",
+      "name": "AWS S33",
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        1340,
+        320
+      ],
+      "credentials": {
+        "aws": {
+          "id": "JFruCydWV7liEYv1",
+          "name": "AWS Diego"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1avLuf5Qpu0lBIFVS-Ny0j-iIFZGkVqqufVGy-sfbqM4/edit?usp=sharing",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Página1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1avLuf5Qpu0lBIFVS-Ny0j-iIFZGkVqqufVGy-sfbqM4/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "0b90f52c-6898-4532-aa40-5ef0ec3c385d",
+      "name": "Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.3,
+      "position": [
+        -460,
+        420
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "t270DvoT1JB3fQCt",
+          "name": "Sheets Will"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9777b34-96c3-49cb-9e8f-5171d677c039",
+              "name": "link",
+              "value": "={{ $json.Link }}",
+              "type": "string"
+            },
+            {
+              "id": "c29c9cfb-b76e-4088-b0ca-7748646d4779",
+              "name": "link1",
+              "value": "={{ $json.Value }}",
+              "type": "string"
+            },
+            {
+              "id": "a2465349-2aee-4dc2-8ce6-9a40bf305fa7",
+              "name": "link2",
+              "value": "={{ $json.Field }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d9f624f5-d935-4698-9c3b-d0f678c4113a",
+      "name": "AUTH",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        -280,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9777b34-96c3-49cb-9e8f-5171d677c039",
+              "name": "arq",
+              "value": "=Auditoria de Carga - d{{ $now.day }}-{{ $now.hour }}h{{ $now.minute }}m{{ $now.second }}s",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d2f1bbf2-8823-4927-8b40-22cc201e9eee",
+      "name": "ARQUIVO",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        -80,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.z-api.io/instances/3AD47F49CE9AF04B4D43CA225862B38B/token/6EE2B07CF6D61B0059AD2125/send-document/xlsx",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "={{ $('AUTH').item.json.link2 }}",
+              "value": "={{ $('AUTH').item.json.link1 }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "phone",
+              "value": "=5581987473570"
+            },
+            {
+              "name": "fileName",
+              "value": "=Auditoria de Carga {{$today.format('DD')}}"
+            },
+            {
+              "name": "document",
+              "value": "=https://marcolanoperacoes.s3.amazonaws.com/{{ $('ARQUIVO').item.json.arq }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "2c6c3148-1216-4adc-839d-362d26d8d371",
+      "name": "André",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        960,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// Loop para formatar a data de cada item\nitems.forEach(item => {\n  if (item.json.data_hora_entregue) {\n    item.json.data_hora_entregue = new Date(item.json.data_hora_entregue).toISOString().split('T')[0];\n  }\n});\n\nreturn items;\n"
+      },
+      "id": "9a3601cf-746f-44ef-9bf4-d8bc059aa5ae",
+      "name": "Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        340,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n    tipo_unidade,\n    unidade, \n    tipo_entrega,\n    tipo_veiculo,\n    placa_veiculo,\n    round(sum(valor_entregue + coalesce(acrescimo, 0)), 2),\n    count(distinct(cod_romaneio)) AS total_romaneio,\n    rota,\n    data_hora_entregue,\n    nome_cliente,\n    cod_romaneio,\n    carga\nFROM\n    entregas_geral eg\nWHERE\n    data_hora_entregue::Date = current_date - 1 \n    AND carga IS NULL\n    AND tipo_entrega = 'ENTREGA'\nGROUP BY\n    tipo_unidade, unidade, tipo_entrega, tipo_veiculo, placa_veiculo, rota, nome_cliente, cod_romaneio, data_hora_entregue, carga",
+        "options": {}
+      },
+      "id": "3a803cbf-6549-4cf2-87da-72f9da8528e8",
+      "name": "Postgres1",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.3,
+      "position": [
+        -60,
+        500
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "ZN57S9HWKSzFz92C",
+          "name": "Alumiaco Corporativo"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9777b34-96c3-49cb-9e8f-5171d677c039",
+              "name": "link",
+              "value": "={{ $json.Link }}",
+              "type": "string"
+            },
+            {
+              "id": "c29c9cfb-b76e-4088-b0ca-7748646d4779",
+              "name": "link1",
+              "value": "={{ $json.Value }}",
+              "type": "string"
+            },
+            {
+              "id": "a2465349-2aee-4dc2-8ce6-9a40bf305fa7",
+              "name": "link2",
+              "value": "={{ $json.Field }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "7aac6092-023b-4016-b010-3aec7081446a",
+      "name": "AUTH1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        -280,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// Loop para formatar a data de cada item\nitems.forEach(item => {\n  if (item.json.data_hora_entregue) {\n    item.json.data_hora_entregue = new Date(item.json.data_hora_entregue).toISOString().split('T')[0];\n  }\n});\n\nreturn items;\n"
+      },
+      "id": "961a7b61-ed33-47b2-a933-820ada357264",
+      "name": "Code1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        140,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "07860d31-8538-4c0f-8664-7123ea8dfef3",
+              "name": "message",
+              "value": "=*----- ALERTA - ENTREGA S/ CARGA*\n\n*Unidade:* {{ $json.unidade }}\n*condicao_entrega:* {{ $json.tipo_entrega }}\n*data_entrega:* {{ $json.data_hora_entregue }}\n*nome_cliente:* {{ $json.nome_cliente }}\n*cod_romaneio:* {{ $json.cod_romaneio }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "223cf83e-ecb5-4291-9051-f9e7b75cd137",
+      "name": "Formata Texto",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        340,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('AUTH1').item.json.link }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "={{ $('AUTH1').item.json.link2 }}",
+              "value": "={{ $('AUTH1').item.json.link1 }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "phone",
+              "value": "5581987473570"
+            },
+            {
+              "name": "message",
+              "value": "=---- {{ $json[\"message\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6ce4e2fa-4ad3-4222-a3de-66c76f1c969b",
+      "name": "André2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        700,
+        640
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('AUTH1').item.json.link }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "={{ $('AUTH1').item.json.link2 }}",
+              "value": "={{ $('AUTH1').item.json.link1 }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "phone",
+              "value": "5581981308564"
+            },
+            {
+              "name": "message",
+              "value": "=---- {{ $json[\"message\"] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e0807df7-8c37-45ba-8bbc-7a64bed706e0",
+      "name": "Diego Marcolan",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        700,
+        500
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "id": "7b8cec6f-9a88-41ea-bcb4-52404a31029d",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1080,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "9b49a1ac-1835-4939-8865-6892ed376efa",
+              "leftValue": "={{ $('contatos').item.json.UNIDADE }}",
+              "rightValue": "={{ $('Postgres1').item.json.unidade }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "1268dfa8-b1cc-4383-b08c-1312c1898500",
+      "name": "If",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        880,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "660387ba-bf3c-4b39-94ad-eb27433ebbe2",
+              "name": "gestor",
+              "value": "={{ $json.GESTOR }}",
+              "type": "string"
+            },
+            {
+              "id": "80df86a7-6066-4340-af40-128e4740aeac",
+              "name": "financeiro",
+              "value": "={{ $json.FINANCEIRO }}",
+              "type": "string"
+            },
+            {
+              "id": "e2bd8647-40c0-4366-8a36-70ba785d0ebc",
+              "name": "unidade",
+              "value": "={{ $json.UNIDADE }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "14263a15-0f1f-429e-9db0-0e4b5a9af864",
+      "name": "formata texto1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        1280,
+        800
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1L1L3OtyvsZRgPUbwOrrjvjxCsvSgYDigx7OI3A0ypNQ/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Página1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1L1L3OtyvsZRgPUbwOrrjvjxCsvSgYDigx7OI3A0ypNQ/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "86408de9-8123-454e-9f22-65e7d9f25541",
+      "name": "contatos",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.3,
+      "position": [
+        700,
+        800
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "t270DvoT1JB3fQCt",
+          "name": "Sheets Will"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('AUTH1').item.json.link }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "={{ $('AUTH1').item.json.link2 }}",
+              "value": "={{ $('AUTH1').item.json.link1 }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "phone",
+              "value": "={{ $('formata texto1').item.json.gestor }}"
+            },
+            {
+              "name": "message",
+              "value": "={{ $('Formata Texto').item.json.message }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "3a329e3c-ed96-44fa-b53b-f63b2f82b466",
+      "name": "Gestores",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1500,
+        800
+      ],
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('AUTH').item.json.link }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "={{ $('AUTH').item.json.link2 }}",
+              "value": "={{ $('AUTH').item.json.link1 }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "phone",
+              "value": "={{ $json.financeiro }}"
+            },
+            {
+              "name": "message",
+              "value": "=---- *ALERTA PEDIDO EMITIDO PARA CLIENTE PENDENTE*\n\nTipo_unidade: *{{ $('formata texto').item.json.tipo_unidade }}*\nUnidade: *{{ $('formata texto').item.json.unidade_novo_pedido }}*\nCódigo_cliente: *{{ $('formata texto').item.json.cod_cliente }}*\nNome_cliente: *{{ $('formata texto').item.json.nome_cliente }}*\nUnidade da Pendência: *{{ $('formata texto').item.json.unidade_pendente }}*\n---------------------------------------------------"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dfb37620-e5e6-4574-8c87-e678ef12aec2",
+      "name": "Auxiliares",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        1500,
+        940
+      ],
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ede53e75-55ad-405c-803e-e572936d81d2",
+              "name": "unidade",
+              "value": "={{ $json.unidade }}",
+              "type": "string"
+            },
+            {
+              "id": "d4979923-f697-44a6-bf34-26878014b3aa",
+              "name": "condicao_entrega",
+              "value": "={{ $json.tipo_entrega }}",
+              "type": "string"
+            },
+            {
+              "id": "515ff57c-1d5a-412f-bb4d-4347820f8de4",
+              "name": "data_entrega",
+              "value": "={{ $json.data_hora_entregue }}",
+              "type": "string"
+            },
+            {
+              "id": "d1120875-3a4b-4ebb-9a36-00a181491d9c",
+              "name": "nome_cliente",
+              "value": "={{ $json.nome_cliente }}",
+              "type": "string"
+            },
+            {
+              "id": "363848d9-0d84-4ad5-8dd6-f91ed22203af",
+              "name": "cod_romaneio",
+              "value": "={{ $json.cod_romaneio }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5fa81e78-8603-4176-a1b2-65be3f4eb329",
+      "name": "Edit Fields",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        120,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pipefy.com/graphql",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJQaXBlZnkiLCJpYXQiOjE3MzY0NDc3OTMsImp0aSI6IjgyMWZhZjBkLWMyMDUtNDRjOC05YTU2LWFmYmIxMzI3OTdkYSIsInN1YiI6ODAyNzIsInVzZXIiOnsiaWQiOjgwMjcyLCJlbWFpbCI6Im1hcmNvbGFuZGllZ29AZ21haWwuY29tIn19.czyBeR45RrwDXqnq-TjN7CgM6zmMgR8KB6oeBujazuO1assBjhTFZVyqLw3LB-yT1xDTnJaQS4aIS7_iRhWz4Q"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"mutation { createCard(input: {pipe_id: 305619354, phase_id: 333525857,  title: \\\"AUDITORIA DE CARGA\\\" fields_attributes: [{field_id: \\\"descricao\\\", field_value: \\\"{{ $json.condicao_entrega }}\\\"}, {field_id: \\\"unidade\\\", field_value: \\\"{{ $json.unidade }}\\\"}, {field_id: \\\"chave\\\", field_value: \\\"{{ $json.cod_romaneio }}\\\"}, {field_id: \\\"nome_cliente\\\", field_value: \\\"{{ $json.nome_cliente }}\\\"}, {field_id: \\\"data_pagamento\\\", field_value: \\\"{{ $json.data_entrega }}\\\"}]}) { card { id } } }\"\n}",
+        "options": {}
+      },
+      "id": "7ffc899f-7d4a-4a14-9641-57e34082c086",
+      "name": "PIPEFY",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        280,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pipefy.com/graphql",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJQaXBlZnkiLCJpYXQiOjE3MzY0NDc3OTMsImp0aSI6IjgyMWZhZjBkLWMyMDUtNDRjOC05YTU2LWFmYmIxMzI3OTdkYSIsInN1YiI6ODAyNzIsInVzZXIiOnsiaWQiOjgwMjcyLCJlbWFpbCI6Im1hcmNvbGFuZGllZ29AZ21haWwuY29tIn19.czyBeR45RrwDXqnq-TjN7CgM6zmMgR8KB6oeBujazuO1assBjhTFZVyqLw3LB-yT1xDTnJaQS4aIS7_iRhWz4Q"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"mutation { updateCard(input: {id: \\\"{{ $json.data.createCard.card.id }}\\\", label_ids: [\\\"314483769\\\"]}) { card { id } } }\"\n}",
+        "options": {}
+      },
+      "id": "447eccd4-726a-4e99-baf4-cae3a5520641",
+      "name": "PIPEFY - etiqueta",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        440,
+        720
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "AWS S31",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "AWS S33",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "AUTH1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AUTH",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AUTH": {
+      "main": [
+        [
+          {
+            "node": "ARQUIVO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ARQUIVO": {
+      "main": [
+        [
+          {
+            "node": "Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "André": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AWS S31": {
+      "main": [
+        [
+          {
+            "node": "André",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AUTH1": {
+      "main": [
+        [
+          {
+            "node": "Postgres1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres1": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Formata Texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Formata Texto": {
+      "main": [
+        [
+          {
+            "node": "contatos",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Diego Marcolan",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "André2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "formata texto1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "formata texto1": {
+      "main": [
+        [
+          {
+            "node": "Gestores",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "contatos": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "PIPEFY",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PIPEFY": {
+      "main": [
+        [
+          {
+            "node": "PIPEFY - etiqueta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "68931f70-1d1a-49d3-a68b-6809279b8f5a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5fbf1f88117a13de2d88da8695b44260b533f3a547e7c2208047dba212bd37aa"
+  },
+  "id": "ClrjI91YbeRbZ6nY",
+  "tags": [
+    {
+      "createdAt": "2024-08-22T13:59:58.421Z",
+      "updatedAt": "2024-08-22T13:59:58.421Z",
+      "id": "5GiisOu68c2Hrv1T",
+      "name": "Control"
+    },
+    {
+      "createdAt": "2024-08-22T17:41:46.950Z",
+      "updatedAt": "2024-08-22T17:41:46.950Z",
+      "id": "ZMjTFE5yBFoVW4UX",
+      "name": "Setor - Controladoria"
+    }
+  ]
+}
