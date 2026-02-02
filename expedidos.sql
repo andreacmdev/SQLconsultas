@@ -1,20 +1,37 @@
--- expedidos belga
-
-select
-	%(Tipo_Unidade)s AS Tipo_Unidade,
-  	%(Unidade)s AS Unidade, 
-    pedidos.NU_PVE as cod_pedido,
-    produto.NU_PRO as cod_produto,
-    pro.DS_COD_INTERNO as cod_interno_vendido, 
-    pro.DS_PRO as desc_produto,
-    produto.QT_PRO as qt_vendida,
-    pedidos.DT_PVE as data_pedido,
-    pedidos.VLR_FINAL as valor_final,
-    rom.NU_ROM as romaneio,
-    rom.DT_ROM as data_entrega
-from mgpve01010 pedidos
-left join mgpve01011 produto on pedidos.NU_PVE = produto.NU_PVE
-left join mgrom01010 rom     on pedidos.NU_PVE = rom.NU_PVE
-left join mgpro01010 pro     on produto.NU_PRO = pro.NU_PRO
-where pedidos.ID_STATUS = '4'
-  and pedidos.DT_PVE > '2025-01-01';
+SELECT
+    ped.NU_PVE   AS CodPedido,
+    ip.NU_DPV    AS CodItem,
+    rom.NU_ROM   AS CodRomaneio,
+    rom.DT_ROM   AS DataEntrega,
+    itens.QT_PRO AS QtdEntregue,
+    -- metragem entregue
+    CASE 
+        WHEN pro.TP_PROD = 1 
+            THEN pro.FAT_CONV1 * itens.QT_PRO
+        ELSE itens.qt_metragcob
+    END AS MetragemEntregue,
+    itens.peso * itens.QT_PRO AS PesoEntregue,
+    -- valor venda com desconto (mesma lógica original)
+    ((ip.VLR_PRO * (100 - ip.alq_desc)) / 100) AS ValorVendaProdutoComDesconto,
+    -- VALOR ENTREGUE (mesma regra do script grande)
+    IF(
+        ip.QT_PRO = itens.QT_PRO,
+        ip.VLR_TOTAL,
+        IF(
+            pro.TP_PROD = 1,
+            itens.QT_PRO * ((ip.VLR_PRO * (100 - ip.alq_desc)) / 100),
+            itens.qt_metragcob * ((ip.VLR_PRO * (100 - ip.alq_desc)) / 100)
+        )
+    ) AS ValorEntregue
+FROM mgrom01011 itens
+INNER JOIN mgrom01010 rom 
+    ON rom.NU_ROM = itens.NU_ROM
+INNER JOIN mgpro01010 pro 
+    ON pro.NU_PRO = itens.NU_PRO
+INNER JOIN mgpve01011 ip 
+    ON ip.NU_DPV = itens.NU_DPV
+INNER JOIN mgpve01010 ped 
+    ON ped.NU_PVE = ip.NU_PVE
+WHERE rom.ID_TP_ROM = 2
+  AND rom.DT_ROM >= '2025-01-01'
+  AND rom.DT_ROM <  '2025-02-01';

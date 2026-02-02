@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Sep 26 12:33:28 2024
+Created on Tue Jan 27 16:40:30 2026
 
 @author: andre
 """
@@ -76,7 +76,7 @@ def ProdutosNaoContabilizados(conn):
             database=conn['name']
         )
 
-        with open(r"{}\allglass_fat.sql".format(caminho_scripts), 'r', encoding="utf8") as f:
+        with open(r"{}\venda_chaparia.sql".format(caminho_scripts), 'r', encoding="utf8") as f:
             mycursor = mydbConn.cursor()
             mycursor.execute(f.read(), Variaveis)
             myresult = mycursor.fetchall()
@@ -103,7 +103,7 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 # Caminho completo para o arquivo Excel
-path = os.path.join(output_dir, f"allglass_fat_jan_2025.xlsx")
+path = os.path.join(output_dir, f"venda_chaparia260119-074000.xlsx")
 
 # Converter os dados do DataFrame usando unidecode
 def clean_text(value):

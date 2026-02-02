@@ -37,5 +37,5 @@ LEFT JOIN mgcta01014 tit
 LEFT JOIN mgram01010 ramo 
     ON cli.NU_RAM = ramo.NU_RAM
 WHERE 
-    pedidos.DT_PVE > '2024-01-01' AND pedidos.DT_PVE <= '2024-12-31'
+    pedidos.DT_PVE > '2025-01-01' AND pedidos.DT_PVE <= '2025-12-31'
     AND tit.ID_STAT_LANCTO = '1'   

@@ -63,5 +63,5 @@ left join mgcon01010 con
 left join mgban01010 banco
     on con.NU_BAN = banco.NU_BAN
 WHERE 
-    pedidos.DT_PVE >= '2024-01-01' and pedidos.DT_PVE <= '2024-12-31'
+    pedidos.DT_PVE >= '2025-01-01' and pedidos.DT_PVE <= '2025-12-31'
     AND tit.ID_STAT_LANCTO = '2'
