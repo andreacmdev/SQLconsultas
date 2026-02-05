@@ -76,7 +76,7 @@ def ProdutosNaoContabilizados(conn):
             database=conn['name']
         )
 
-        with open(r"{}\allglass_fat.sql".format(caminho_scripts), 'r', encoding="utf8") as f:
+        with open(r"{}\nf.sql".format(caminho_scripts), 'r', encoding="utf8") as f:
             mycursor = mydbConn.cursor()
             mycursor.execute(f.read(), Variaveis)
             myresult = mycursor.fetchall()
@@ -96,14 +96,14 @@ with concurrent.futures.ThreadPoolExecutor() as executor:
 Query = pd.concat(results, ignore_index=True)
 
 # Caminho para o diretório onde o arquivo Excel será salvo
-output_dir = r"C:\Users\andre\OneDrive\Documentos\Development\Alumiaço\Toneladas"
+output_dir = r"C:\Users\andre\OneDrive\Documentos\Development\Alumiaço\Python\RELATÓRIOS\OUTPUTS"
 
 # Verificar se o diretório existe, e se não, criá-lo
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 # Caminho completo para o arquivo Excel
-path = os.path.join(output_dir, f"allglass_fat_jan_2025.xlsx")
+path = os.path.join(output_dir, f"fat_nf.xlsx")
 
 # Converter os dados do DataFrame usando unidecode
 def clean_text(value):
