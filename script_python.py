@@ -76,7 +76,7 @@ def ProdutosNaoContabilizados(conn):
             database=conn['name']
         )
 
-        with open(r"{}\nf.sql".format(caminho_scripts), 'r', encoding="utf8") as f:
+        with open(r"{}\faturamento_nfe.sql".format(caminho_scripts), 'r', encoding="utf8") as f:
             mycursor = mydbConn.cursor()
             mycursor.execute(f.read(), Variaveis)
             myresult = mycursor.fetchall()
