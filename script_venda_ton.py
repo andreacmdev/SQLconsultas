@@ -16,7 +16,7 @@ import concurrent.futures
 warnings.simplefilter('ignore')
 Query = pd.DataFrame()
 disabled = []
-parametros = r"C:\Users\andre\OneDrive\Documentos\Development\Alumiaço\Python\RELATÓRIOS\1 - PARAMETROS"
+parametros = r"C:\Users\andre\OneDrive\Documentos\Development\Alumiaço\Toneladas"
 caminho_scripts = r"C:\Users\andre\OneDrive\Documentos\Development\Alumiaço\Python\RELATÓRIOS\SCRIPTS"
 
 def carregarConexoesUnidades():
