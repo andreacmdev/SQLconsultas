@@ -88,7 +88,7 @@ FROM (
       -- AND pedidos.DS_OES NOT LIKE '%transf%'
       AND pedidos.DS_CAT NOT LIKE '%TEMPER%'
       AND pedidos.DS_CAT NOT LIKE '%BOX%'
-      AND rom.DT_ROM >= '2026-01-01'
+      AND rom.DT_ROM >= '2026-02-01'
 ) resumo
 GROUP BY 
     resumo.DS_OES,
