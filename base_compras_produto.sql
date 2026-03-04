@@ -4,16 +4,14 @@ SELECT
   pc.pedido,
   pc.cod_produto,
   pr.nome_produto,
+  pr.subclasse,
   pr.fabricante,
   pc.data_pedido::timestamp AS data_pedido,
   REPLACE(pc.qtd_comprada, ',', '.')::numeric AS qtd_comprada,
-  -- 💰 valor correto
   pc.valor_pago::numeric AS valor_pago,
-  -- ⭐ nº itens do pedido
   COUNT(*) OVER (
   PARTITION BY pc.unidade, pc.pedido
 ) AS qtd_itens_pedido,
-  -- ⭐ valor dividido correto
   ROUND(
   pc.valor_pago::numeric
     / COUNT(*) OVER (
