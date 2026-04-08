@@ -1,0 +1,252 @@
+{
+  "name": "Pagamentos em Atraso (D-1)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 7 * * *" }]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": { "value": "SEU_SPREADSHEET_ID_CREDENCIAIS" },
+        "sheetName": { "value": "credenciais" },
+        "options": {}
+      },
+      "id": "sheets-credenciais",
+      "name": "Sheets – Credenciais",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [400, 300],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "8Ytd3zZKAOSyZNqC", "name": "Sheets Andre" } }
+    },
+    {
+      "parameters": {
+        "jsCode": "const state = $getWorkflowStaticData('global');\nstate.rows = [];\nstate.summary = [];\nreturn $input.all();"
+      },
+      "id": "init-state",
+      "name": "Init State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "loop",
+      "name": "Loop Over Items",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT\n    titulos.nu_cta AS titulo,\n    'Despesa' AS tipo,\n    titulos.DT_EMISSAO AS data_emissao,\n    titulos.DT_VENCTO AS data_vencimento,\n    titulos.DT_PAGTO AS data_pagamento,\n    DATEDIFF(titulos.DT_PAGTO, titulos.DT_VENCTO) AS dias_em_atraso,\n    CASE\n        WHEN titulos.ID_STAT_LANCTO = 5 THEN 'PREVISAO MANUAL'\n        WHEN titulos.ID_STAT_LANCTO = 1 THEN 'PENDENTE'\n        WHEN titulos.ID_STAT_LANCTO = 2 THEN 'PAGO'\n        WHEN titulos.ID_STAT_LANCTO = 3 THEN 'CANCELADO'\n        WHEN titulos.ID_STAT_LANCTO = 6 THEN 'PREVISAO AUTOMATICA'\n    END AS situacao,\n    CASE\n        WHEN titulos.NU_FOR > 0 THEN fornecores.DS_FOR\n        WHEN titulos.NU_COL > 0 THEN colaborador.DS_COL\n    END AS fornecedor_colaborador,\n    titulos.DS_CPG AS descricao,\n    titulos.VLR_TIT_ORIG AS valor_titulo,\n    centrocusto.DS_CCU AS centro_custo,\n    planoconta.DS_CPC AS plano_conta,\n    classificacao.DS_TPD AS classificacao,\n    titulos.NU_DOCTO AS documento,\n    titulos.DS_OBS AS observacao,\n    usu.NOM_USU AS usuario,\n    CASE\n        WHEN formas.TP_PAGTO = 1 AND formas.NU_CON IS NULL THEN 'Dinheiro'\n        WHEN formas.TP_PAGTO = 1 AND formas.NU_CON IS NOT NULL THEN 'Conta Interna'\n        WHEN formas.TP_PAGTO = 2 THEN 'Cheque'\n        WHEN formas.TP_PAGTO = 3 THEN 'Cartao'\n        WHEN formas.TP_PAGTO = 4 THEN 'Saldo'\n        WHEN formas.TP_PAGTO = 5 THEN 'Outros'\n        WHEN formas.TP_PAGTO = 6 THEN 'Boleto'\n        WHEN formas.TP_PAGTO = 7 THEN 'Deposito'\n        WHEN formas.TP_PAGTO = 8 THEN 'Duplicata'\n        WHEN formas.TP_PAGTO = 9 THEN 'Saldo de Outro Cliente'\n        ELSE 'Nao Determinado'\n    END AS forma_pagamento\nFROM mgcta01014 titulos\nLEFT JOIN mgtxc01010 titConta ON titulos.NU_CTA = titConta.NU_CTA\nLEFT JOIN mgccu01010 centrocusto ON titConta.NU_CCU = centrocusto.NU_CCU\nLEFT JOIN mgcpc01010 planoconta ON titConta.NU_CPC = planoconta.NU_CPC\nLEFT JOIN mgfor01010 fornecores ON titulos.NU_FOR = fornecores.NU_FOR\nLEFT JOIN mgcol01010 colaborador ON colaborador.NU_COL = titulos.NU_COL\nLEFT JOIN mgtpd01010 classificacao ON classificacao.NU_TPD = titulos.NU_TPD\nLEFT JOIN mgusu01010 usu ON usu.NU_USU = titulos.NU_USU\nLEFT JOIN mgcta01017 pagamentos ON titulos.NU_CLT = pagamentos.NU_CLT\nLEFT JOIN mgcta01018 formas ON pagamentos.NU_CLT = formas.NU_CLT\nWHERE\n    titulos.ID_STAT_LANCTO = 2\n    AND titulos.COD_LANCTO = 2\n    AND titulos.DT_PAGTO > titulos.DT_VENCTO\n    AND DATE(titulos.DT_PAGTO) = CURDATE() - INTERVAL 1 DAY\nORDER BY dias_em_atraso DESC",
+        "options": {}
+      },
+      "id": "mysql-query",
+      "name": "MySQL – Pagamentos Atraso",
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [1000, 300],
+      "credentials": {
+        "mySql": { "id": "INDKBtYNaYfBC3it", "name": "MySQL Connection" }
+      },
+      "parameters": {
+        "host": "={{ $('Loop Over Items').item.json.host }}",
+        "port": "={{ $('Loop Over Items').item.json.port }}",
+        "database": "={{ $('Loop Over Items').item.json.database }}",
+        "user": "={{ $('Loop Over Items').item.json.user }}",
+        "password": "={{ $('Loop Over Items').item.json.password }}"
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "check-error",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "exists", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-erro",
+      "name": "IF – Erro?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const state = $getWorkflowStaticData('global');\nconst unitName = $('Loop Over Items').item.json.unit_name;\nconst rows = $input.all();\n\nif (!rows || rows.length === 0) {\n  state.summary.push({ unit: unitName, count: 0 });\n  return [];\n}\n\nconst enriched = rows.map(r => ({\n  json: { unidade: unitName, ...r.json }\n}));\n\nstate.rows = [...(state.rows || []), ...enriched];\nstate.summary.push({ unit: unitName, count: rows.length });\n\nreturn enriched;"
+      },
+      "id": "acumula-rows",
+      "name": "Acumula Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1400, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "const state = $getWorkflowStaticData('global');\nconst rows = state.rows || [];\nconst summary = state.summary || [];\n\nconst yesterday = new Date();\nyesterday.setDate(yesterday.getDate() - 1);\nconst dateStr = yesterday.toLocaleDateString('pt-BR');\n\nconst summaryLines = summary.map(s =>\n  s.count > 0\n    ? `▪ ${s.unit}: ${s.count} título(s) pago(s) em atraso`\n    : `✅ ${s.unit}: sem ocorrências`\n).join('\\n');\n\nconst hasAny = rows.length > 0;\n\nconst message = hasAny\n  ? `📋 *Pagamentos em Atraso — ${dateStr}*\\n\\nTítulos pagos após vencimento ontem:\\n\\n${summaryLines}\\n\\nDetalhes disponíveis na planilha de controle.`\n  : `✅ *Pagamentos em Atraso — ${dateStr}*\\n\\nNenhum título foi pago em atraso ontem.\\n\\n${summaryLines}`;\n\nstate.rows = [];\nstate.summary = [];\n\nreturn [{ json: { rows, message, hasAny } }];"
+      },
+      "id": "monta-mensagem",
+      "name": "Monta Mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1600, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [
+            {
+              "id": "check-hasany",
+              "leftValue": "={{ $json.hasAny }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-tem-dados",
+      "name": "IF – Tem Dados?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1800, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $json.rows;\n\nif (!rows || rows.length === 0) return [];\n\nconst headers = [\n  'unidade','titulo','tipo','data_emissao','data_vencimento',\n  'data_pagamento','dias_em_atraso','situacao','fornecedor_colaborador',\n  'descricao','valor_titulo','centro_custo','plano_conta',\n  'classificacao','documento','observacao','usuario','forma_pagamento'\n];\n\n// Retorna cada row como item separado para o Sheets\nreturn rows.map(r => ({\n  json: Object.fromEntries(headers.map(h => [h, r.json[h] ?? '']))\n}));"
+      },
+      "id": "prep-sheets",
+      "name": "Prep Sheets Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 200]
+    },
+    {
+      "parameters": {
+        "operation": "clear",
+        "documentId": { "value": "SEU_SPREADSHEET_ID_DESTINO" },
+        "sheetName": { "value": "pagamentos_atraso" },
+        "options": {}
+      },
+      "id": "sheets-clear",
+      "name": "Sheets – Limpar Aba",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [2200, 200],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "8Ytd3zZKAOSyZNqC", "name": "Sheets Andre" } }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": { "value": "SEU_SPREADSHEET_ID_DESTINO" },
+        "sheetName": { "value": "pagamentos_atraso" },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "options": { "headerRow": true }
+        },
+        "options": {}
+      },
+      "id": "sheets-append",
+      "name": "Sheets – Inserir Dados",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.4,
+      "position": [2400, 200],
+      "credentials": { "googleSheetsOAuth2Api": { "id": "8Ytd3zZKAOSyZNqC", "name": "Sheets Andre" } }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.z-api.io/instances/{{ $('Sheets – Credenciais').first().json.instance_id }}/token/{{ $('Sheets – Credenciais').first().json.token }}/send-text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "client-token", "value": "={{ $('Sheets – Credenciais').first().json.client_token }}" }]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "phone", "value": "={{ $('Sheets – Credenciais').first().json.phone }}" },
+            { "name": "message", "value": "={{ $('Monta Mensagem').first().json.message }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "zapi-com-dados",
+      "name": "Z-API – Envia WhatsApp (com dados)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2600, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.z-api.io/instances/{{ $('Sheets – Credenciais').first().json.instance_id }}/token/{{ $('Sheets – Credenciais').first().json.token }}/send-text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [{ "name": "client-token", "value": "={{ $('Sheets – Credenciais').first().json.client_token }}" }]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            { "name": "phone", "value": "={{ $('Sheets – Credenciais').first().json.phone }}" },
+            { "name": "message", "value": "={{ $('Monta Mensagem').first().json.message }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "zapi-sem-dados",
+      "name": "Z-API – Envia WhatsApp (sem dados)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2600, 400]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": { "main": [[{ "node": "Sheets – Credenciais", "type": "main", "index": 0 }]] },
+    "Sheets – Credenciais": { "main": [[{ "node": "Init State", "type": "main", "index": 0 }]] },
+    "Init State": { "main": [[{ "node": "Loop Over Items", "type": "main", "index": 0 }]] },
+    "Loop Over Items": { "main": [
+      [{ "node": "MySQL – Pagamentos Atraso", "type": "main", "index": 0 }],
+      [{ "node": "Monta Mensagem", "type": "main", "index": 0 }]
+    ]},
+    "MySQL – Pagamentos Atraso": { "main": [[{ "node": "IF – Erro?", "type": "main", "index": 0 }]] },
+    "IF – Erro?": {
+      "main": [
+        [{ "node": "Loop Over Items", "type": "main", "index": 0 }],
+        [{ "node": "Acumula Rows", "type": "main", "index": 0 }]
+      ]
+    },
+    "Acumula Rows": { "main": [[{ "node": "Loop Over Items", "type": "main", "index": 0 }]] },
+    "Monta Mensagem": { "main": [[{ "node": "IF – Tem Dados?", "type": "main", "index": 0 }]] },
+    "IF – Tem Dados?": {
+      "main": [
+        [{ "node": "Prep Sheets Rows", "type": "main", "index": 0 }],
+        [{ "node": "Z-API – Envia WhatsApp (sem dados)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Prep Sheets Rows": { "main": [[{ "node": "Sheets – Limpar Aba", "type": "main", "index": 0 }]] },
+    "Sheets – Limpar Aba": { "main": [[{ "node": "Sheets – Inserir Dados", "type": "main", "index": 0 }]] },
+    "Sheets – Inserir Dados": { "main": [[{ "node": "Z-API – Envia WhatsApp (com dados)", "type": "main", "index": 0 }]] }
+  }
+}

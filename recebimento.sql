@@ -44,5 +44,5 @@ LEFT JOIN mgpro01010 pro
 LEFT JOIN mgcat01010 cat -*
     ON pro.NU_CAT = cat.NU_CAT
 WHERE 
-    n.DT_ENTREGA >= '2025-07-01'
+    n.DT_ENTREGA >= '2026-01-01'
     AND n.DT_ENTREGA <= CURDATE();

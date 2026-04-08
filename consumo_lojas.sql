@@ -1,10 +1,11 @@
 SELECT 
     %(Tipo_Unidade)s AS Tipo_Unidade,
     %(Unidade)s AS Unidade, 
-    resumo.DS_OES,
-    resumo.DS_CAT,
-    resumo.DS_PRO,
-    resumo.DS_SCP,
+    resumo.DS_OES as coes,
+    resumo.DS_CAT as categoria,
+    resumo.DS_PRO as nome_produto,
+    resumo.DS_SCP as subclasse,
+    resumo.DS_CLP as classe,
     SUM(resumo.MetragemEntregueSerie) AS m2,
     SUM(resumo.ValorUnitario)                AS ValorUnitario,
     SUM(resumo.CustoUnitario)                AS CustoUnitario,
@@ -30,6 +31,7 @@ FROM (
         DATE(rom.DT_ROM) AS DataHoraEntregue,
         pedidos.DS_SCP,
         pedidos.DS_PRO,
+        pedidos.DS_CLP,
         pedidos.ValorUnitario,
         pedidos.CustoUnitario,
         pedidos.ValorVendaProdutoComDesconto,
@@ -45,6 +47,7 @@ FROM (
             produtos.NU_PVE,
             produtos.NU_DPV,
             subclasse.DS_SCP,
+            classe.DS_CLP ,
             prod.DS_PRO,
             ROUND(
                 IF (
@@ -77,6 +80,7 @@ FROM (
             ON categoria.NU_CAT = prod.NU_CAT 
         LEFT JOIN mgscp01010 subclasse 
             ON prod.NU_SCP = subclasse.NU_SCP
+        left join mgclp01010 classe on prod.NU_CLP = classe.NU_CLP 
         WHERE ped.ID_STATUS IN (1,2,4,8,9)
           AND ped.DT_PVE >= '2023-06-01'
     ) pedidos 
@@ -99,7 +103,9 @@ FROM (
   )
   AND pedidos.DS_OES NOT LIKE '%REP%' 
   AND pedidos.DS_OES NOT LIKE '%inativo%'
-    AND rom.DT_ROM >= '2026-03-01'
+  AND pedidos.DS_CAT NOT LIKE '%TEMPER%'
+  AND pedidos.DS_CAT NOT LIKE '%BOX%'
+  AND rom.DT_ROM >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 6 MONTH), '%Y-%m-01')
 ) resumo
 GROUP BY 
     resumo.DS_OES,
