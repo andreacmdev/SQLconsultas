@@ -76,4 +76,5 @@ LEFT JOIN (
 ) saldo_cli
     ON pedidos.NU_CLI = saldo_cli.NU_CLI
 WHERE 
-    tit.ID_STAT_LANCTO = '1';
+     pedidos.DT_PVE > '2024-10-01'
+    and tit.ID_STAT_LANCTO = '1';
